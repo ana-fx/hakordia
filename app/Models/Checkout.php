@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ class Checkout extends Model
     protected $fillable = [
         'order_number',
         'unique_id',
+        'ticket_id',
         'total_amount',
         'total_participants',
         'status',
@@ -59,6 +61,11 @@ class Checkout extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(CheckoutParticipant::class);
+    }
+
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
     }
 
     public static function generateOrderNumber(): string

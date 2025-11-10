@@ -7,13 +7,11 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\TicketController;
+use Illuminate\Support\Facades\Auth;
 
 // Public Routes
 Route::get('/', [RegistrationController::class, 'index'])->name('home');
-
-Route::get('/event-details', function () {
-    return view('event-details');
-})->name('event.details');
 
 // Registration Routes (tanpa auth)
 Route::get('/register-event', [RegistrationController::class, 'create'])->name('registration.create');
@@ -27,7 +25,7 @@ Route::post('/register/{unique_id}/upload-payment', [CheckoutController::class, 
 Route::middleware(['auth'])->group(function () {
     // User Routes
     Route::get('/dashboard', function () {
-        if (auth()->user()->is_admin) {
+        if (Auth::user()?->is_admin) {
             return redirect()->route('admin.dashboard');
         }
         return view('dashboard');
@@ -57,7 +55,12 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     Route::get('/order/{order_number}/edit', [AdminController::class, 'editOrder'])->name('editOrder');
     Route::post('/order/{order_number}/edit', [AdminController::class, 'updateOrder'])->name('updateOrder');
     Route::delete('/order/{order_number}', [AdminController::class, 'deleteOrder'])->name('deleteOrder');
+
+    Route::resource('tickets', TicketController::class)->except(['show']);
 });
+
+Route::view('/kebijakan-privasi', 'policy.privacy')->name('policy.privacy');
+Route::view('/syarat-ketentuan', 'policy.terms')->name('policy.terms');
 
 // Admin auth routes
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');

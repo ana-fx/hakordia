@@ -3,19 +3,16 @@
 @section('title', 'Detail Order ' . $checkout->order_number)
 
 @section('content')
+@php
+    use App\Support\StatusStyle;
+@endphp
 <div class="max-w-4xl mx-auto py-8 space-y-8">
     <div class="bg-white shadow rounded-lg p-6 flex flex-col md:flex-row gap-8 items-start">
         <div class="flex-1">
             <h2 class="text-2xl font-bold mb-4">Detail Order #{{ $checkout->order_number }}</h2>
             <div class="mb-2">
                 <span class="font-semibold">Status:</span>
-                <span class="px-2 py-1 rounded text-xs font-semibold
-                    @if($checkout->status === 'pending') bg-yellow-100 text-yellow-800
-                    @elseif($checkout->status === 'waiting') bg-blue-100 text-blue-800
-                    @elseif($checkout->status === 'paid') bg-green-100 text-green-800
-                    @elseif($checkout->status === 'verified') bg-green-700 text-white
-                    @elseif($checkout->status === 'expired') bg-red-100 text-red-800
-                    @endif">
+                <span class="badge rounded-pill text-uppercase {{ StatusStyle::badgeClasses($checkout->status) }}">
                     {{ ucfirst($checkout->status) }}
                 </span>
             </div>

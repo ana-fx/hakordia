@@ -7,6 +7,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100">
+    @php
+        use App\Support\StatusStyle;
+    @endphp
     <div class="min-h-screen">
         <nav class="bg-white shadow-lg">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,11 +39,7 @@
                             <div>
                                 <dt class="font-medium">Status</dt>
                                 <dd>
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        @if($payment->status === 'pending') bg-yellow-100 text-yellow-800
-                                        @elseif($payment->status === 'paid') bg-green-100 text-green-800
-                                        @else bg-red-100 text-red-800
-                                        @endif">
+                                    <span class="badge rounded-pill text-uppercase {{ StatusStyle::badgeClasses($payment->status) }}">
                                         {{ ucfirst($payment->status) }}
                                     </span>
                                 </dd>

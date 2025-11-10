@@ -35,8 +35,10 @@ class CheckoutController extends Controller
             }
 
             session(['checkout_id' => $checkout->id]);
+
+            $checkout->load(['participants', 'ticket']);
         } else {
-            $checkout = Checkout::with('participants')->find(session('checkout_id'));
+            $checkout = Checkout::with(['participants', 'ticket'])->find(session('checkout_id'));
         }
 
         return view('checkout', [
@@ -53,7 +55,7 @@ class CheckoutController extends Controller
 
         $checkout = Checkout::findOrFail(session('checkout_id'));
 
-        if ($checkout->status !== 'pending') {
+        if (! in_array($checkout->status, ['pending', 'waiting'])) {
             return back()->with('error', 'Status pembayaran tidak valid untuk upload bukti pembayaran.');
         }
 
@@ -68,8 +70,8 @@ class CheckoutController extends Controller
 
             $checkout->update([
                 'payment_proof' => $path,
-                'status' => 'paid',
-                'paid_at' => Carbon::now(),
+                'status' => 'waiting',
+                'paid_at' => null,
             ]);
 
             return back()->with('success', 'Bukti pembayaran berhasil diupload. Tim kami akan memverifikasi pembayaran Anda.');
@@ -89,7 +91,7 @@ class CheckoutController extends Controller
 
     public function showPublic($unique_id)
     {
-        $checkout = \App\Models\Checkout::with('participants')->where('unique_id', $unique_id)->firstOrFail();
+        $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('unique_id', $unique_id)->firstOrFail();
         $registrants = $checkout->participants;
         return view('checkout', [
             'checkout' => $checkout,
@@ -103,7 +105,7 @@ class CheckoutController extends Controller
             'payment_proof' => 'required|image|max:2048',
         ]);
         $checkout = \App\Models\Checkout::where('unique_id', $unique_id)->firstOrFail();
-        if ($checkout->status !== 'pending') {
+        if (! in_array($checkout->status, ['pending', 'waiting'])) {
             return back()->with('error', 'Status pembayaran tidak valid untuk upload bukti pembayaran.');
         }
         if ($request->hasFile('payment_proof')) {

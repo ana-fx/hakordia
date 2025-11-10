@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('unique_id')->unique();
             $table->string('order_number')->unique();
+            $table->foreignId('ticket_id')->nullable()->constrained('tickets')->nullOnDelete();
             $table->integer('total_amount');
             $table->integer('total_participants');
             $table->enum('status', ['pending', 'waiting', 'paid', 'expired', 'verified'])->default('pending');
@@ -21,6 +22,8 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['status', 'payment_deadline']);
         });
 
         Schema::create('checkout_participants', function (Blueprint $table) {

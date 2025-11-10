@@ -4,20 +4,20 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="description" content="Pandalungan Night Run 2025 - Event lari malam spektakuler di Jember, Jawa Timur. Daftar sekarang untuk pengalaman lari yang tak terlupakan!">
-        <meta name="keywords" content="Pandalungan Night Run, Night Run 2025, Event Lari Jember, Lari Malam, Daftar Lari, Event Jember, Running Event Indonesia">
-        <meta property="og:title" content="Pandalungan Night Run 2025">
+        <meta name="description" content="Hakordia Fun Night Run - Event lari malam spektakuler di Jember, Jawa Timur. Daftar sekarang untuk pengalaman lari yang tak terlupakan!">
+        <meta name="keywords" content="Hakordia Fun Night Run, Night Run 2025, Event Lari Jember, Lari Malam, Daftar Lari, Event Jember, Running Event Indonesia">
+        <meta property="og:title" content="Hakordia Fun Night Run">
         <meta property="og:description" content="Event lari malam spektakuler di Jember, Jawa Timur. Daftar sekarang untuk pengalaman lari yang tak terlupakan!">
-        <meta property="og:image" content="/images/night-run.jpg">
+        <meta property="og:image" content="{{ asset('images/logo.jpg') }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:type" content="website">
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="Pandalungan Night Run 2025">
+        <meta name="twitter:title" content="Hakordia Fun Night Run">
         <meta name="twitter:description" content="Event lari malam spektakuler di Jember, Jawa Timur. Daftar sekarang untuk pengalaman lari yang tak terlupakan!">
-        <meta name="twitter:image" content="/images/night-run.jpg">
-        <link rel="icon" type="image/x-icon" href="/images/image.png">
+        <meta name="twitter:image" content="{{ asset('images/logo.jpg') }}">
+        <link rel="icon" type="image/png" href="{{ asset('images/logo.jpg') }}">
 
-        <title>@yield('title', 'Form Pendaftaran')</title>
+        <title>@yield('title', 'Hakordia Fun Night Run')</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,13 +26,21 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>
+            @media print {
+                body { background: #fff !important; }
+                #mainHeader,
+                footer,
+                .print\:hidden { display: none !important; }
+                .print\:border { border: 1px solid #cbd5f5 !important; }
+                .print\:rounded-none { border-radius: 0 !important; }
+                .print\:px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+                .print\:py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+            }
+        </style>
     </head>
     <body class="font-sans antialiased min-h-screen flex flex-col" style="font-family: 'Inter', sans-serif;">
         @include('partials.header')
-
-        @if(request()->routeIs('home'))
-            @include('partials.hero')
-        @endif
 
             <!-- Page Content -->
         <main class="flex-grow">
@@ -41,21 +49,5 @@
 
         @include('partials.footer')
         @stack('scripts')
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const header = document.getElementById('mainHeader');
-            function onScroll() {
-                if (window.scrollY > 10) {
-                    header.classList.add('bg-white', 'shadow-md');
-                    header.classList.remove('bg-transparent', 'bg-white/80');
-                } else {
-                    header.classList.remove('bg-white', 'shadow-md', 'bg-white/80');
-                    header.classList.add('bg-transparent');
-                }
-            }
-            window.addEventListener('scroll', onScroll);
-            onScroll();
-        });
-        </script>
     </body>
 </html>

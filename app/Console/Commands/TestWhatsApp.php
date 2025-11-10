@@ -13,7 +13,7 @@ class TestWhatsApp extends Command
     public function handle()
     {
         $number = $this->argument('number');
-        $message = $this->argument('message') ?? 'Ini adalah pesan test dari sistem Pandalungan Night Run 2025';
+        $message = $this->argument('message') ?? 'Ini adalah pesan test dari sistem Hakordia Fun Night Run';
 
         $this->info("Mencoba mengirim pesan ke: {$number}");
 

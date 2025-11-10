@@ -6,11 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Registration;
 use Illuminate\Support\Facades\DB;
 use App\Models\Checkout;
-use Carbon\Carbon;
-use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
-use Twilio\Rest\Client;
 use App\Jobs\SendWhatsappNotification;
+use App\Models\Setting;
+use App\Models\Ticket;
 
 class RegistrationController extends Controller
 {
@@ -21,9 +20,14 @@ class RegistrationController extends Controller
             $query->where('status', 'paid');
         })->count();
 
+        $registrationClosed = Setting::getValue('registration_closed', false);
+
+        $availableTickets = Ticket::available()->orderBy('start_date')->get();
+
         return view('home', [
             'totalPaidParticipants' => $totalPaidParticipants,
-            'quotaReached' => true
+            'quotaReached' => $registrationClosed,
+            'availableTickets' => $availableTickets,
         ]);
     }
 
@@ -78,12 +82,14 @@ class RegistrationController extends Controller
 
     public function store(Request $request)
     {
-        // Registration is closed
+        if (Setting::getValue('registration_closed', false)) {
         return back()->withErrors(['error' => 'Mohon maaf, pendaftaran Night Run 2025 sudah ditutup.']);
+        }
 
         Log::info('Memulai proses pendaftaran', ['request' => $request->all()]);
         $validatedData = $request->validate([
             'registrations' => ['required', 'array', 'min:1', 'max:5'],
+            'ticket_id' => ['required', 'exists:tickets,id'],
             'registrations.*.nik' => ['required', 'string', 'size:16', 'distinct', 'unique:registrations,nik'],
             'registrations.*.full_name' => ['required', 'string', 'max:255'],
             'registrations.*.whatsapp_number' => ['required', 'string', 'max:20', 'distinct', 'unique:registrations,whatsapp_number'],
@@ -91,7 +97,7 @@ class RegistrationController extends Controller
             'registrations.*.address' => ['required', 'string'],
             'registrations.*.date_of_birth' => ['required', 'date'],
             'registrations.*.city' => ['required', 'string', 'max:255'],
-            'registrations.*.jersey_size' => ['nullable', 'string', 'in:XS,S,M,L,XL,XXL,All Size'],
+            'registrations.*.jersey_size' => ['required', 'string', 'in:XS,S,M,L,XL,XXL,XXXL'],
             'registrations.*.blood_type' => ['nullable', 'string', 'in:A,B,AB,O'],
             'registrations.*.emergency_contact_number' => ['required', 'string', 'max:20'],
             'registrations.*.medical_conditions' => ['nullable', 'string'],
@@ -106,13 +112,20 @@ class RegistrationController extends Controller
             'registrations.*.email.distinct' => 'Email tidak boleh sama dengan pendaftar lain.',
         ]);
         Log::info('Validasi berhasil', ['validated' => $validatedData]);
+        $totalParticipants = count($validatedData['registrations']);
+        $ticket = Ticket::available()->find($validatedData['ticket_id']);
+
+        if (! $ticket) {
+            return back()->withInput()->withErrors(['ticket_id' => 'Pilihan tiket tidak tersedia saat ini.']);
+        }
+
         try {
             DB::beginTransaction();
-            $totalParticipants = count($validatedData['registrations']);
-            $totalAmount = 150000 * $totalParticipants;
+            $totalAmount = $ticket->price * $totalParticipants;
 
-            $checkout = \App\Models\Checkout::create([
-                'order_number' => \App\Models\Checkout::generateOrderNumber(),
+            $checkout = Checkout::create([
+                'order_number' => Checkout::generateOrderNumber(),
+                'ticket_id' => $ticket->id,
                 'total_amount' => $totalAmount,
                 'total_participants' => $totalParticipants,
                 'status' => 'pending',
@@ -121,10 +134,6 @@ class RegistrationController extends Controller
 
             // Create participants
             foreach ($validatedData['registrations'] as $participant) {
-                // Set jersey_size to "All Size" if empty
-                if (empty($participant['jersey_size'])) {
-                    $participant['jersey_size'] = 'All Size';
-                }
                 $participant['checkout_id'] = $checkout->id;
                 $checkoutParticipant = \App\Models\CheckoutParticipant::create($participant);
                 Log::info('Peserta berhasil dibuat', ['checkout_participant' => $checkoutParticipant]);
