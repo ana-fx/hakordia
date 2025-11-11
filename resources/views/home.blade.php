@@ -278,25 +278,30 @@
                         <div class="space-y-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Sneak peek</p>
                             <h3 class="text-2xl font-bold">Kenapa harus ikut Hakordia Fun Night Run?</h3>
-                            <p class="text-sm text-slate-300">Festival lari malam dengan instalasi cahaya, musik live, dan hadiah total Rp 4.500.000 siap menyambut kamu dan tim.</p>
+                            <p class="text-sm text-slate-300">Festival lari malam dengan instalasi cahaya dan musik live siap menyambut kamu dan tim.</p>
                         </div>
                         <div class="space-y-4">
-                            <div class="flex gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-5 items-start min-h-[120px]">
-                                <span class="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </span>
-                                <div>
-                                    <p class="text-sm font-semibold">Event</p>
-                                    <p class="text-xs text-slate-300">Sabtu, 6 Desember 2025 · 19.00 WIB</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-5 items-start min-h-[120px]">
-                                <span class="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/20 text-secondary">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 12.414a4 4 0 10-1.414 1.414l4.243 4.243a1 1 0 001.414-1.414z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                </span>
-                                <div>
-                                    <p class="text-sm font-semibold">Lokasi</p>
-                                    <p class="text-xs text-slate-300">Alun-Alun Jember Nusantara</p>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Event & Lokasi</p>
+                                <div class="mt-4 space-y-4 text-xs text-slate-300">
+                                    <div class="flex items-start gap-3">
+                                        <span class="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 text-primary">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-white">Sabtu, 6 Desember 2025</p>
+                                            <p>Mulai pukul 19.00 WIB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/20 text-secondary">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 12.414a4 4 0 10-1.414 1.414l4.243 4.243a1 1 0 001.414-1.414z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-semibold text-white">Alun-Alun Jember Nusantara</p>
+                                            <p>Jl. Nusantara No. 1, Jember</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-5 items-start min-h-[120px]">
@@ -312,6 +317,52 @@
                                 </div>
                             </div>
                         </div>
+                            <div class="rounded-2xl border border-primary/30 bg-primary/10 px-5 py-6 text-slate-50">
+                                <p class="text-xs font-semibold uppercase tracking-[0.4em] text-primary/80">Prize Pool</p>
+                                <div class="mt-3 space-y-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-primary/90">Total Hadiah</p>
+                                        <div class="mt-1 flex items-baseline gap-2">
+                                            <span class="text-xl font-semibold text-primary/80">Rp</span>
+                                            <span class="text-4xl font-extrabold text-primary">8.000.000</span>
+                                        </div>
+                                        <p class="mt-1 text-xs font-medium uppercase text-slate-200">Podium 1, 2, 3 · Male & Female</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-white/10 px-4 py-3 text-xs space-y-2">
+                                        <p class="flex items-baseline justify-between gap-4">
+                                            <span class="font-semibold text-primary/70">Juara 1</span>
+                                            <span class="flex items-baseline gap-1"><span>Rp</span><span class="font-semibold text-slate-50">2.000.000</span></span>
+                                        </p>
+                                        <p class="flex items-baseline justify-between gap-4">
+                                            <span class="font-semibold text-primary/70">Juara 2</span>
+                                            <span class="flex items-baseline gap-1"><span>Rp</span><span class="font-semibold text-slate-50">1.500.000</span></span>
+                                        </p>
+                                        <p class="flex items-baseline justify-between gap-4">
+                                            <span class="font-semibold text-primary/70">Juara 3</span>
+                                            <span class="flex items-baseline gap-1"><span>Rp</span><span class="font-semibold text-slate-50">1.000.000</span></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5 text-slate-50">
+                                <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Include</p>
+                                <div class="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
+                                    <div class="space-y-2">
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Race Pack</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Jersey</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Glow Stick</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Kacamata</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Bib</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Foto Race</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>500 Finisher Medal</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Refreshment</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Guest Star</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Doorprize</p>
+                                    </div>
+                                </div>
+                            </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
                             <p class="text-sm font-semibold text-white">Tips cepat registrasi</p>
                             <ul class="mt-3 space-y-2 text-xs text-slate-300">
@@ -347,7 +398,6 @@
             <div>
                 <h4 class="mb-1 font-semibold text-primary">1. Persyaratan Peserta</h4>
                 <ul class="list-disc pl-5 space-y-1">
-                    <li>Minimal berusia 17 tahun pada hari pelaksanaan.</li>
                     <li>Dalam kondisi sehat dan fit untuk berlari.</li>
                     <li>Memiliki identitas yang valid untuk verifikasi.</li>
                 </ul>
