@@ -25,10 +25,61 @@
         })
         .then(() => {
             updateBadgeStatus(id, nextStatus);
+            updateWidgetTotals();
             showToast('Status berhasil diperbarui!', 'success');
         })
         .catch(() => {
             showToast('Gagal memperbarui status!', 'error');
+        });
+    }
+
+    function updateWidgetTotals() {
+        fetch('/admin/totals', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            // Update Total Peserta
+            const totalParticipantsEl = document.querySelector('[data-widget="total_participants"]');
+            if (totalParticipantsEl) {
+                totalParticipantsEl.textContent = data.total_participants;
+            }
+
+            // Update Total Pendapatan
+            const totalIncomeEl = document.querySelector('[data-widget="total_income"]');
+            if (totalIncomeEl) {
+                totalIncomeEl.textContent = new Intl.NumberFormat('id-ID').format(data.total_income);
+            }
+
+            // Update Status Paid
+            const paidEl = document.querySelector('[data-widget="paid"]');
+            if (paidEl) {
+                paidEl.textContent = data.paid;
+            }
+
+            // Update Status Expired
+            const expiredEl = document.querySelector('[data-widget="expired"]');
+            if (expiredEl) {
+                expiredEl.textContent = data.expired;
+            }
+
+            // Update Status Pending
+            const pendingEl = document.querySelector('[data-widget="pending"]');
+            if (pendingEl) {
+                pendingEl.textContent = data.pending;
+            }
+
+            // Update Status Waiting
+            const waitingEl = document.querySelector('[data-widget="waiting"]');
+            if (waitingEl) {
+                waitingEl.textContent = data.waiting;
+            }
+        })
+        .catch(err => {
+            console.error('Gagal update widget totals:', err);
         });
     }
 

@@ -109,10 +109,59 @@ class AdminController extends Controller
         $request->validate([
             'status' => 'required|in:pending,waiting,paid,expired,verified',
         ]);
-        $checkout = \App\Models\Checkout::findOrFail($id);
-        $checkout->status = $request->status;
+        $checkout = \App\Models\Checkout::with('ticket')->findOrFail($id);
+        $oldStatus = $checkout->status;
+        $newStatus = $request->status;
+
+        // Update status
+        $checkout->status = $newStatus;
+
+        // Handle quota reduction/increase when status changes
+        if ($checkout->ticket && $checkout->ticket->quota !== null) {
+            // If changing from non-paid to paid, reduce quota
+            if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+                $remainingQuota = $checkout->ticket->getRemainingQuota();
+                if ($remainingQuota < $checkout->total_participants) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Kuota tidak mencukupi. Sisa kuota: {$remainingQuota}, dibutuhkan: {$checkout->total_participants}"
+                    ], 400);
+                }
+            }
+            // If changing from paid to non-paid, quota will be recalculated automatically via getRemainingQuota()
+        }
+
         $checkout->save();
+
+        // Log quota info for debugging
+        if ($checkout->ticket && $checkout->ticket->quota !== null) {
+            \Illuminate\Support\Facades\Log::info('Quota updated', [
+                'ticket_id' => $checkout->ticket_id,
+                'ticket_name' => $checkout->ticket->name,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'participants' => $checkout->total_participants,
+                'remaining_quota' => $checkout->ticket->getRemainingQuota(),
+            ]);
+        }
+
         return response()->json(['success' => true]);
+    }
+
+    public function getTotals()
+    {
+        $totals = [
+            'total_participants' => CheckoutParticipant::whereHas('checkout', function($query) {
+                $query->where('status', 'paid');
+            })->count(),
+            'total_income' => Checkout::where('status', 'paid')->sum('total_amount'),
+            'pending' => Checkout::where('status', 'pending')->count(),
+            'waiting' => Checkout::where('status', 'waiting')->count(),
+            'paid' => Checkout::where('status', 'paid')->count(),
+            'expired' => Checkout::where('status', 'expired')->count()
+        ];
+
+        return response()->json($totals);
     }
 
     public function orderDetail($order_number)
@@ -136,7 +185,7 @@ class AdminController extends Controller
 
     public function updateOrder(Request $request, $order_number)
     {
-        $checkout = \App\Models\Checkout::with('participants')->where('order_number', $order_number)->firstOrFail();
+        $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('order_number', $order_number)->firstOrFail();
         $registrations = \App\Models\Registration::whereIn('nik', $checkout->participants->pluck('nik'))
             ->orWhereIn('email', $checkout->participants->pluck('email'))
             ->get();
@@ -146,7 +195,22 @@ class AdminController extends Controller
         }
         // Update status jika ada
         if ($request->has('status')) {
-            $checkout->status = $request->status;
+            $oldStatus = $checkout->status;
+            $newStatus = $request->status;
+
+            // Handle quota when status changes
+            if ($checkout->ticket && $checkout->ticket->quota !== null) {
+                if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+                    $remainingQuota = $checkout->ticket->getRemainingQuota();
+                    if ($remainingQuota < $checkout->total_participants) {
+                        return back()->withErrors([
+                            'status' => "Kuota tidak mencukupi. Sisa kuota: {$remainingQuota}, dibutuhkan: {$checkout->total_participants}"
+                        ]);
+                    }
+                }
+            }
+
+            $checkout->status = $newStatus;
             $checkout->save();
         }
         return redirect()->route('admin.orderDetail', $order_number)->with('success', 'Data order dan peserta berhasil diperbarui.');

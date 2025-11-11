@@ -17,6 +17,7 @@ class Registration extends Model
         'address',
         'date_of_birth',
         'city',
+        'gender',
         'jersey_size',
         'blood_type',
         'emergency_contact_number',

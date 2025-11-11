@@ -80,7 +80,7 @@
                                     <td class="px-4 py-3">{{ $registrant['nik'] }}</td>
                                     <td class="px-4 py-3">{{ $registrant['email'] }}</td>
                                     <td class="px-4 py-3">{{ $registrant['whatsapp_number'] }}</td>
-                                    <td class="px-4 py-3">{{ $registrant['jersey_size'] }}</td>
+                                    <td class="px-4 py-3">{{ $registrant['jersey_size'] ?? 'All Size' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

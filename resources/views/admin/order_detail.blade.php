@@ -44,7 +44,7 @@
                 <div><span class="font-semibold">NIK:</span> {{ $p->nik }}</div>
                 <div><span class="font-semibold">Email:</span> {{ $p->email }}</div>
                 <div><span class="font-semibold">No. WA:</span> {{ $p->whatsapp_number }}</div>
-                <div><span class="font-semibold">Ukuran Jersey:</span> {{ $p->jersey_size }}</div>
+                <div><span class="font-semibold">Ukuran Jersey:</span> {{ $p->jersey_size ?? 'All Size' }}</div>
                 <div><span class="font-semibold">Alamat:</span> {{ $p->address }}</div>
                 <div><span class="font-semibold">Kota:</span> {{ $p->city }}</div>
                 <div><span class="font-semibold">Tgl Lahir:</span> {{ $p->date_of_birth ? \Carbon\Carbon::parse($p->date_of_birth)->format('d-m-Y') : '-' }}</div>

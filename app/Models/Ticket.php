@@ -13,6 +13,7 @@ class Ticket extends Model
     protected $fillable = [
         'name',
         'price',
+        'participant_count',
         'start_date',
         'end_date',
         'quota',
@@ -30,6 +31,44 @@ class Ticket extends Model
 
         return $query->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today);
+    }
+
+    /**
+     * Get remaining quota for this ticket
+     */
+    public function getRemainingQuota(): ?int
+    {
+        if ($this->quota === null) {
+            return null; // Unlimited quota
+        }
+
+        $usedQuota = \App\Models\Checkout::where('ticket_id', $this->id)
+            ->where('status', 'paid')
+            ->sum('total_participants');
+
+        return max(0, $this->quota - $usedQuota);
+    }
+
+    /**
+     * Check if ticket has available quota
+     */
+    public function hasAvailableQuota(int $needed = 1): bool
+    {
+        if ($this->quota === null) {
+            return true; // Unlimited quota
+        }
+
+        return $this->getRemainingQuota() >= $needed;
+    }
+
+    /**
+     * Get used quota count
+     */
+    public function getUsedQuota(): int
+    {
+        return \App\Models\Checkout::where('ticket_id', $this->id)
+            ->where('status', 'paid')
+            ->sum('total_participants');
     }
 }
 

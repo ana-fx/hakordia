@@ -34,7 +34,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Total Peserta</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $totals['total_participants'] }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900"><span data-widget="total_participants">{{ $totals['total_participants'] }}</span></p>
                     <p class="text-xs text-slate-500">Peserta dengan status paid</p>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Total Pendapatan</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">Rp {{ number_format($totals['total_income'], 0, ',', '.') }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">Rp <span data-widget="total_income">{{ number_format($totals['total_income'], 0, ',', '.') }}</span></p>
                     <p class="text-xs text-slate-500">Dari pesanan berstatus paid</p>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Status Paid</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $totals['paid'] }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900"><span data-widget="paid">{{ $totals['paid'] }}</span></p>
                     <p class="text-xs text-slate-500">Jumlah order berhasil dibayar</p>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Expired</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $totals['expired'] }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900"><span data-widget="expired">{{ $totals['expired'] }}</span></p>
                     <p class="text-xs text-slate-500">Pesanan melewati batas waktu</p>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Pending</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $totals['pending'] }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900"><span data-widget="pending">{{ $totals['pending'] }}</span></p>
                     <p class="text-xs text-slate-500">Belum upload bukti pembayaran</p>
                             </div>
                         </div>
@@ -94,7 +94,7 @@
                 </span>
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Waiting</p>
-                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $totals['waiting'] }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900"><span data-widget="waiting">{{ $totals['waiting'] }}</span></p>
                     <p class="text-xs text-slate-500">Sudah upload bukti pembayaran</p>
                             </div>
                         </div>
@@ -200,7 +200,7 @@
                                         </td>
                             <td class="px-4 py-4 text-slate-600">
                                 @forelse($checkout->participants as $p)
-                                    <div>{{ $p->jersey_size }}</div>
+                                    <div>{{ $p->jersey_size ?? 'All Size' }}</div>
                                 @empty
                                     <span class="text-slate-400">—</span>
                                 @endforelse

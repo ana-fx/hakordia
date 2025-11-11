@@ -26,6 +26,8 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <!-- Flatpickr Date Picker CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/airbnb.css">
         <style>
             @media print {
                 body { background: #fff !important; }
@@ -48,6 +50,8 @@
             </main>
 
         @include('partials.footer')
+        <!-- Flatpickr Date Picker JS -->
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
         @stack('scripts')
     </body>
 </html>

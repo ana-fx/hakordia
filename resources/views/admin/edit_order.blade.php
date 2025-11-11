@@ -79,8 +79,9 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Ukuran Jersey</label>
-                                <input type="text" name="participants[{{ $p->id }}][jersey_size]" value="{{ $p->jersey_size }}"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-accent focus:ring focus:ring-accent focus:ring-opacity-50">
+                                <div class="w-full rounded-md border border-dashed border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent">
+                                    {{ $p->jersey_size ?? 'All Size' }}
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>

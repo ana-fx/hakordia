@@ -51,6 +51,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     Route::get('/registrations/{id}', [AdminController::class, 'show'])->name('show');
     Route::get('/export', [AdminController::class, 'export'])->name('export');
     Route::patch('/checkouts/{id}/update-status', [AdminController::class, 'updateStatus'])->name('updateStatus');
+    Route::get('/totals', [AdminController::class, 'getTotals'])->name('getTotals');
     Route::get('/order/{order_number}/detail', [AdminController::class, 'orderDetail'])->name('orderDetail');
     Route::get('/order/{order_number}/edit', [AdminController::class, 'editOrder'])->name('editOrder');
     Route::post('/order/{order_number}/edit', [AdminController::class, 'updateOrder'])->name('updateOrder');

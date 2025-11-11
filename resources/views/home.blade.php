@@ -59,10 +59,6 @@
                     </p>
                     <div class="flex flex-wrap justify-center gap-4 text-sm text-slate-600">
                         <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-2 shadow-sm">
-                            <svg class="h-4 w-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            Peserta terverifikasi: {{ number_format($totalPaidParticipants) }} orang
-                        </div>
-                        <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-2 shadow-sm">
                             <svg class="h-4 w-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Deadline pembayaran: +24 jam setelah submit
                         </div>
@@ -105,29 +101,24 @@
                 </div>
             @endif
 
-            <form action="{{ route('registration.store') }}" method="POST" class="space-y-8" id="registrationForm">
+
+            <form action="{{ route('registration.store') }}" method="POST" class="space-y-8" id="registrationForm" onsubmit="return validateCoupleBundle(event)">
                 @csrf
                             @php
                                 $selectedTicketId = old('ticket_id', $availableTickets->first()->id ?? null);
                             @endphp
 
                             @if($availableTickets->isNotEmpty())
-                                <div class="rounded-[30px] border border-primary/20 bg-white/95 px-6 py-6 shadow-xl backdrop-blur sm:px-8 sm:py-7">
-                                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-primary/70">Pilih Tahap</span>
-                                            <h3 class="mt-2 text-xl font-bold text-slate-900">Tahap tiket untuk order ini</h3>
-                                            <p class="text-sm text-slate-500">Harga dan batas waktu pembayaran mengikuti tahap yang dipilih.</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-primary/70">Tersedia</p>
-                                            <p class="text-lg font-bold text-primary">{{ $availableTickets->count() }} Tahap</p>
-                                        </div>
+                                <div class="rounded-[30px] border border-primary/20 bg-white/95 px-6 py-6 shadow-xl backdrop-blur sm:px-8 sm:py-7 relative z-40">
+                                    <div>
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-primary/70">Pilih Tahap</span>
+                                        <h3 class="mt-2 text-xl font-bold text-slate-900">Tahap tiket untuk order ini</h3>
+                                        <p class="text-sm text-slate-500">Harga dan batas waktu pembayaran mengikuti tahap yang dipilih.</p>
                                     </div>
                                     <div class="mt-5 grid gap-5 md:grid-cols-2">
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-2">Tahap Registrasi</label>
-                                            <div class="relative" id="ticketDropdown">
+                                            <div class="relative z-50" id="ticketDropdown">
                                                 <button type="button" class="ticket-toggle flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary">
                                                     <span id="ticketSelectedLabel">
                                                         @php
@@ -137,12 +128,17 @@
                                                     </span>
                                                     <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
-                                                <div class="ticket-panel absolute z-20 mt-2 hidden w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                                                <div class="ticket-panel absolute z-50 mt-2 hidden w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
                                                     <ul class="max-h-56 overflow-auto text-sm text-slate-600">
                                                         @foreach($availableTickets as $ticket)
                                                             <li>
-                                                                <button type="button" class="ticket-option flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-primary/5 @if($selectedTicketId == $ticket->id) bg-primary/5 @endif" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}">
-                                                                    <span class="font-semibold text-slate-900">{{ $ticket->name }}</span>
+                                                                <button type="button" class="ticket-option flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-primary/5 @if($selectedTicketId == $ticket->id) bg-primary/5 @endif" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}" data-participant-count="{{ $ticket->participant_count ?? '' }}" data-price="{{ $ticket->price }}">
+                                                                    <div class="flex items-center justify-between w-full">
+                                                                        <span class="font-semibold text-slate-900">{{ $ticket->name }}</span>
+                                                                        @if($ticket->participant_count)
+                                                                            <span class="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{{ $ticket->participant_count }} tiket</span>
+                                                                        @endif
+                                                                    </div>
                                                                     <span class="text-xs text-slate-500">Harga Rp {{ number_format($ticket->price, 0, ',', '.') }}</span>
                                                                 </button>
                                                             </li>
@@ -170,7 +166,7 @@
                                 </div>
                             @endif
 
-                            <div id="registrantsContainer" class="space-y-8">
+                            <div id="registrantsContainer" class="space-y-8 relative z-10">
                                 <div class="registrant-form relative rounded-[30px] border border-primary/20 bg-white/95 px-6 py-6 shadow-xl transition hover:shadow-2xl sm:px-8 sm:py-8">
                                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                         <div class="flex items-center gap-3">
@@ -187,10 +183,7 @@
 
                                     <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                            <label class="flex items-center gap-1 text-sm font-semibold text-slate-700 mb-1">
-                                                <svg class="h-4 w-4 text-secondary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0-1.104-.896-2-2-2s-2 .896-2 2 .896 2 2 2 2-.896 2-2zm0 0c0 1.104.896 2 2 2s2-.896 2-2-.896-2-2-2-2 .896-2 2z"/></svg>
-                                    NIK
-                                </label>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">NIK</label>
                                             <input type="text" name="registrations[0][nik]" required pattern="\d{16}" minlength="16" maxlength="16" inputmode="numeric" autocomplete="off" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Masukkan 16 digit NIK" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                         </div>
                             <div>
@@ -211,42 +204,77 @@
                         </div>
                             <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Lahir</label>
-                                            <input type="text" name="registrations[0][date_of_birth]" required class="date-input mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="dd/mm/yyyy" autocomplete="off">
+                                            <input type="text" name="registrations[0][date_of_birth]" required class="date-input block w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="dd/mm/yyyy" autocomplete="off">
                         </div>
                             <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Kota</label>
                                             <input type="text" name="registrations[0][city]" required maxlength="255" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Masukkan kota domisili">
                         </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ukuran Jersey</label>
-                                            <select name="registrations[0][jersey_size]" required class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary">
-                                                <option value="">Pilih ukuran</option>
-                                                <option value="XS">XS</option>
-                                                <option value="S">S</option>
-                                                <option value="M">M</option>
-                                                <option value="L">L</option>
-                                                <option value="XL">XL</option>
-                                                <option value="XXL">XXL</option>
-                                                <option value="XXXL">XXXL</option>
-                                            </select>
+                            <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Kelamin</label>
+                                            <div class="relative gender-dropdown" data-registrant-index="0">
+                                                <button type="button" class="gender-toggle flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-2 text-base shadow focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <span class="gender-selected-label">Pilih jenis kelamin</span>
+                                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                                </button>
+                                                <div class="gender-panel absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                                    <ul class="max-h-56 overflow-auto text-sm text-slate-600">
+                                                        <li>
+                                                            <button type="button" class="gender-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-gender="Laki-laki">
+                                                                <span class="font-semibold text-slate-900">Laki-laki</span>
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="gender-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-gender="Perempuan">
+                                                                <span class="font-semibold text-slate-900">Perempuan</span>
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <input type="hidden" name="registrations[0][gender]" class="gender-selected-value" value="">
+                                            </div>
                         </div>
                             <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Golongan Darah</label>
-                                            <select name="registrations[0][blood_type]" required class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary">
-                                <option value="">Pilih golongan darah</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="AB">AB</option>
-                                <option value="O">O</option>
-                            </select>
+                                            <div class="relative blood-type-dropdown" data-registrant-index="0">
+                                                <button type="button" class="blood-type-toggle flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-2 text-base shadow focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <span class="blood-type-selected-label">Pilih golongan darah</span>
+                                                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                                </button>
+                                                <div class="blood-type-panel absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                                    <ul class="max-h-56 overflow-auto text-sm text-slate-600">
+                                                        <li>
+                                                            <button type="button" class="blood-type-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-blood-type="A">
+                                                                <span class="font-semibold text-slate-900">A</span>
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="blood-type-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-blood-type="B">
+                                                                <span class="font-semibold text-slate-900">B</span>
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="blood-type-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-blood-type="AB">
+                                                                <span class="font-semibold text-slate-900">AB</span>
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="blood-type-option flex w-full items-center px-4 py-3 text-left transition hover:bg-primary/5" data-blood-type="O">
+                                                                <span class="font-semibold text-slate-900">O</span>
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <input type="hidden" name="registrations[0][blood_type]" class="blood-type-selected-value" value="" required>
+                                            </div>
                         </div>
-                            <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor Kontak Darurat</label>
-                                            <input type="tel" name="registrations[0][emergency_contact_number]" required pattern="\d{10,20}" minlength="10" maxlength="20" inputmode="numeric" autocomplete="off" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Contoh: 081234567890" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                            </div>
                             <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Riwayat Penyakit <span class="text-gray-400 font-normal">(opsional)</span></label>
                                             <textarea name="registrations[0][medical_conditions]" rows="2" maxlength="255" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Masukkan riwayat penyakit (opsional)"></textarea>
+                            </div>
+                            <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor Kontak Darurat</label>
+                                            <input type="tel" name="registrations[0][emergency_contact_number]" required pattern="\d{10,20}" minlength="10" maxlength="20" inputmode="numeric" autocomplete="off" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Contoh: 081234567890" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                             </div>
                         </div>
                     </div>
@@ -272,6 +300,9 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Toast Notification -->
+            <div id="toast" class="fixed bottom-6 right-6 z-50 hidden min-w-[220px] max-w-xs rounded-full px-4 py-3 text-sm font-semibold text-white shadow-xl"></div>
                     </div>
 
                     <aside class="space-y-8 rounded-[34px] border border-white/10 bg-slate-950 px-6 py-8 text-slate-50 shadow-[0_30px_90px_-30px_rgba(15,23,42,0.8)] md:sticky md:top-24 md:self-start">
@@ -441,6 +472,57 @@
 
 @push('scripts')
 <script>
+    // Toast notification function (similar to admin dashboard)
+    function showToast(message, type = 'error') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.className = `fixed bottom-6 right-6 z-50 min-w-[220px] max-w-xs rounded-full px-4 py-3 text-sm font-semibold text-white shadow-xl ${type === 'success' ? 'bg-primary' : 'bg-red-500'}`;
+        toast.classList.remove('hidden');
+        toast.style.display = 'block';
+
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.classList.add('hidden');
+        }, 3000);
+    }
+
+    function validateCoupleBundle(event) {
+        const ticketId = document.getElementById('ticketSelectedValue')?.value;
+        if (!ticketId) return true;
+
+        // Check if selected ticket is Couple Bundle
+        const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${ticketId}"]`);
+        if (!selectedOption) return true;
+
+        const ticketName = selectedOption.dataset.ticketName;
+        const participantCount = selectedOption.dataset.participantCount;
+
+        // Validate Couple Bundle
+        if (ticketName === 'Couple Bundle' && participantCount == 2) {
+            const genderInputs = document.querySelectorAll('.gender-selected-value');
+            const genders = Array.from(genderInputs).map(input => input.value).filter(val => val !== '');
+
+            if (genders.length !== 2) {
+                event.preventDefault();
+                showToast('Silakan lengkapi jenis kelamin untuk kedua peserta.', 'error');
+                return false;
+            }
+
+            const maleCount = genders.filter(g => g === 'Laki-laki').length;
+            const femaleCount = genders.filter(g => g === 'Perempuan').length;
+
+            if (maleCount !== 1 || femaleCount !== 1) {
+                event.preventDefault();
+                showToast('Paket Couple Bundle harus terdiri dari 1 Laki-laki dan 1 Perempuan. Silakan periksa kembali pilihan jenis kelamin Anda.', 'error');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const dropdown = document.getElementById('ticketDropdown');
         if (!dropdown) return;
@@ -455,16 +537,73 @@
             panel.classList.toggle('hidden');
         });
 
-        options.forEach(option => {
+                options.forEach(option => {
             option.addEventListener('click', function () {
                 const id = this.dataset.ticketId;
                 const name = this.dataset.ticketName;
+                const participantCount = this.dataset.participantCount;
+
                 selectedLabel.textContent = name;
                 selectedValue.value = id;
                 panel.classList.add('hidden');
 
                 options.forEach(btn => btn.classList.remove('bg-primary/5'));
                 this.classList.add('bg-primary/5');
+
+                // Auto-populate registrants if bundle is selected
+                if (participantCount && participantCount !== '') {
+                    const targetCount = parseInt(participantCount);
+                    const currentCount = document.querySelectorAll('.registrant-form').length;
+
+                    // Remove excess registrants if current count > target
+                    if (currentCount > targetCount) {
+                        while (document.querySelectorAll('.registrant-form').length > targetCount) {
+                            const forms = document.querySelectorAll('.registrant-form');
+                            if (forms.length > 1) {
+                                const lastForm = forms[forms.length - 1];
+                                const removeBtn = lastForm.querySelector('.remove-btn');
+                                if (removeBtn) {
+                                    lastForm.remove();
+                                    registrantCount--;
+                                }
+                            }
+                        }
+                    }
+
+                    // Add registrants if current count < target (skip bundle check for auto-populate)
+                    while (document.querySelectorAll('.registrant-form').length < targetCount) {
+                        addRegistrant(true);
+                    }
+
+                    // Hide add button and remove buttons if bundle is selected
+                    const addBtn = document.getElementById('addRegistrantBtn');
+                    if (addBtn) {
+                        addBtn.classList.add('hidden');
+                    }
+
+                    // Hide all remove buttons for bundle tickets
+                    document.querySelectorAll('.remove-btn').forEach(btn => {
+                        btn.classList.add('hidden');
+                    });
+                } else {
+                    // Show add button for non-bundle tickets
+                    const addBtn = document.getElementById('addRegistrantBtn');
+                    if (addBtn) {
+                        addBtn.classList.remove('hidden');
+                    }
+
+                    // Show remove buttons for non-bundle tickets (except first one)
+                    document.querySelectorAll('.registrant-form').forEach((form, index) => {
+                        const removeBtn = form.querySelector('.remove-btn');
+                        if (removeBtn) {
+                            if (index === 0) {
+                                removeBtn.classList.add('hidden');
+                            } else {
+                                removeBtn.classList.remove('hidden');
+                            }
+                        }
+                    });
+                }
             });
         });
 
@@ -475,30 +614,12 @@
         });
     });
 </script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_blue.css">
 <style>
     .flatpickr-calendar {
-        border-radius: 18px;
-        border: 1px solid rgba(65,117,203,0.25);
-        box-shadow: 0 20px 45px -25px rgba(15,23,42,0.65);
-    }
-    .flatpickr-day.selected,
-    .flatpickr-day.startRange,
-    .flatpickr-day.endRange,
-    .flatpickr-day.selected:hover {
-        background: #4175cb;
-        border-color: #4175cb;
-    }
-    .flatpickr-day.today {
-        border-color: #a9c941;
-        color: #a9c941;
-    }
-    .flatpickr-day.flatpickr-disabled,
-    .flatpickr-day.flatpickr-disabled:hover {
-        color: rgba(148,163,184,0.6);
+        border-radius: 16px;
+        font-family: inherit;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 <script>
     let registrantCount = 1;
     const maxRegistrants = 5;
@@ -528,9 +649,97 @@
             registrantTemplateHTML = firstForm.outerHTML;
         }
         initDatePickers();
+        initBloodTypeDropdowns();
+        initGenderDropdowns();
     });
 
-    function addRegistrant() {
+    function initBloodTypeDropdowns(root = document) {
+        const dropdowns = root.querySelectorAll('.blood-type-dropdown');
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.blood-type-toggle');
+            const panel = dropdown.querySelector('.blood-type-panel');
+            const options = dropdown.querySelectorAll('.blood-type-option');
+            const selectedLabel = dropdown.querySelector('.blood-type-selected-label');
+            const selectedValue = dropdown.querySelector('.blood-type-selected-value');
+
+            if (!toggle || !panel || !selectedLabel || !selectedValue) return;
+
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                panel.classList.toggle('hidden');
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const bloodType = this.dataset.bloodType;
+                    selectedLabel.textContent = bloodType;
+                    selectedValue.value = bloodType;
+                    panel.classList.add('hidden');
+
+                    options.forEach(btn => btn.classList.remove('bg-primary/5'));
+                    this.classList.add('bg-primary/5');
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!dropdown.contains(event.target)) {
+                    panel.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    function initGenderDropdowns(root = document) {
+        const dropdowns = root.querySelectorAll('.gender-dropdown');
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.gender-toggle');
+            const panel = dropdown.querySelector('.gender-panel');
+            const options = dropdown.querySelectorAll('.gender-option');
+            const selectedLabel = dropdown.querySelector('.gender-selected-label');
+            const selectedValue = dropdown.querySelector('.gender-selected-value');
+
+            if (!toggle || !panel || !selectedLabel || !selectedValue) return;
+
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                panel.classList.toggle('hidden');
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const gender = this.dataset.gender;
+                    selectedLabel.textContent = gender;
+                    selectedValue.value = gender;
+                    panel.classList.add('hidden');
+
+                    options.forEach(btn => btn.classList.remove('bg-primary/5'));
+                    this.classList.add('bg-primary/5');
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!dropdown.contains(event.target)) {
+                    panel.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    function addRegistrant(skipBundleCheck = false) {
+        // Check if bundle ticket is selected (skip if called from auto-populate)
+        if (!skipBundleCheck) {
+            const selectedTicketValue = document.getElementById('ticketSelectedValue');
+            if (selectedTicketValue) {
+                const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${selectedTicketValue.value}"]`);
+                if (selectedOption && selectedOption.dataset.participantCount && selectedOption.dataset.participantCount !== '') {
+                    alert('Paket bundle tidak dapat menambah atau mengurangi jumlah peserta. Jumlah peserta sudah ditentukan.');
+                    return;
+                }
+            }
+        }
+
         if (registrantCount >= maxRegistrants) {
             alert('Maksimal 5 pendaftar');
             return;
@@ -556,22 +765,71 @@
             if (input.type === 'checkbox') {
                 input.checked = false;
             } else {
-                input.value = '';
+                const defaultValue = input.dataset.defaultValue !== undefined ? input.dataset.defaultValue : '';
+                input.value = defaultValue;
             }
             if (input.classList.contains('date-input')) {
                 input.removeAttribute('data-has-flatpickr');
             }
         });
 
+        // Update blood type dropdown attributes
+        const bloodTypeDropdown = template.querySelector('.blood-type-dropdown');
+        if (bloodTypeDropdown) {
+            bloodTypeDropdown.setAttribute('data-registrant-index', registrantCount - 1);
+            const bloodTypeLabel = bloodTypeDropdown.querySelector('.blood-type-selected-label');
+            const bloodTypeValue = bloodTypeDropdown.querySelector('.blood-type-selected-value');
+            if (bloodTypeLabel) bloodTypeLabel.textContent = 'Pilih golongan darah';
+            if (bloodTypeValue) {
+                bloodTypeValue.value = '';
+                bloodTypeValue.setAttribute('name', `registrations[${registrantCount - 1}][blood_type]`);
+            }
+            // Reset selected state
+            bloodTypeDropdown.querySelectorAll('.blood-type-option').forEach(opt => {
+                opt.classList.remove('bg-primary/5');
+            });
+        }
+
+        // Update gender dropdown attributes
+        const genderDropdown = template.querySelector('.gender-dropdown');
+        if (genderDropdown) {
+            genderDropdown.setAttribute('data-registrant-index', registrantCount - 1);
+            const genderLabel = genderDropdown.querySelector('.gender-selected-label');
+            const genderValue = genderDropdown.querySelector('.gender-selected-value');
+            if (genderLabel) genderLabel.textContent = 'Pilih jenis kelamin';
+            if (genderValue) {
+                genderValue.value = '';
+                genderValue.setAttribute('name', `registrations[${registrantCount - 1}][gender]`);
+            }
+            // Reset selected state
+            genderDropdown.querySelectorAll('.gender-option').forEach(opt => {
+                opt.classList.remove('bg-primary/5');
+            });
+        }
+
         document.getElementById('registrantsContainer').appendChild(template);
         initDatePickers(template);
+        initBloodTypeDropdowns(template);
+        initGenderDropdowns(template);
 
         if (registrantCount >= maxRegistrants) {
             document.getElementById('addRegistrantBtn').classList.add('hidden');
         }
     }
 
-    function removeRegistrant(button) {
+    function removeRegistrant(button, skipBundleCheck = false) {
+        // Check if bundle ticket is selected (skip if called from auto-populate)
+        if (!skipBundleCheck) {
+            const selectedTicketValue = document.getElementById('ticketSelectedValue');
+            if (selectedTicketValue) {
+                const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${selectedTicketValue.value}"]`);
+                if (selectedOption && selectedOption.dataset.participantCount && selectedOption.dataset.participantCount !== '') {
+                    alert('Paket bundle tidak dapat menambah atau mengurangi jumlah peserta. Jumlah peserta sudah ditentukan.');
+                    return;
+                }
+            }
+        }
+
         const form = button.closest('.registrant-form');
         form.remove();
         registrantCount--;
@@ -589,11 +847,37 @@
                     input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
                 }
             });
+
+            // Update blood type dropdown
+            const bloodTypeDropdown = form.querySelector('.blood-type-dropdown');
+            if (bloodTypeDropdown) {
+                bloodTypeDropdown.setAttribute('data-registrant-index', index);
+                const bloodTypeValue = bloodTypeDropdown.querySelector('.blood-type-selected-value');
+                if (bloodTypeValue) {
+                    bloodTypeValue.setAttribute('name', `registrations[${index}][blood_type]`);
+                }
+            }
+
+            // Update gender dropdown
+            const genderDropdown = form.querySelector('.gender-dropdown');
+            if (genderDropdown) {
+                genderDropdown.setAttribute('data-registrant-index', index);
+                const genderValue = genderDropdown.querySelector('.gender-selected-value');
+                if (genderValue) {
+                    genderValue.setAttribute('name', `registrations[${index}][gender]`);
+                }
+            }
+
             if (index === 0) {
                 form.querySelector('.remove-btn').classList.add('hidden');
             }
         });
+
+        // Reinitialize dropdowns after reindexing
+        initBloodTypeDropdowns();
+        initGenderDropdowns();
     }
+
 
     function openTerms() {
         const modal = document.getElementById('termsModal');

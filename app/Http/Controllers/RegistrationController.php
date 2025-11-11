@@ -13,6 +13,8 @@ use App\Models\Ticket;
 
 class RegistrationController extends Controller
 {
+    private const DEFAULT_JERSEY_SIZE = 'All Size';
+
     public function index()
     {
         // Check total paid participants
@@ -22,11 +24,23 @@ class RegistrationController extends Controller
 
         $registrationClosed = Setting::getValue('registration_closed', false);
 
-        $availableTickets = Ticket::available()->orderBy('start_date')->get();
+        // Get available tickets and filter by quota
+        $allAvailableTickets = Ticket::available()->orderBy('start_date')->get();
+        
+        // Filter tickets that still have quota available
+        $availableTickets = $allAvailableTickets->filter(function($ticket) {
+            return $ticket->hasAvailableQuota(1);
+        });
+
+        // Check if all tickets have exhausted their quota
+        // Form will be closed if:
+        // 1. Manual setting registration_closed = true, OR
+        // 2. All available tickets have exhausted their quota (no tickets with remaining quota)
+        $allTicketsExhausted = $allAvailableTickets->count() > 0 && $availableTickets->isEmpty();
 
         return view('home', [
             'totalPaidParticipants' => $totalPaidParticipants,
-            'quotaReached' => $registrationClosed,
+            'quotaReached' => $registrationClosed || $allTicketsExhausted,
             'availableTickets' => $availableTickets,
         ]);
     }
@@ -46,7 +60,7 @@ class RegistrationController extends Controller
             'registrants.*.address' => ['required', 'string'],
             'registrants.*.date_of_birth' => ['required', 'date'],
             'registrants.*.city' => ['required', 'string', 'max:255'],
-            'registrants.*.jersey_size' => ['required', 'string', 'in:XS,S,M,L,XL,XXL,XXXL'],
+            'registrants.*.jersey_size' => ['nullable', 'string'],
             'registrants.*.blood_type' => ['nullable', 'string', 'in:A,B,AB,O'],
             'registrants.*.emergency_contact_number' => ['required', 'string', 'max:20'],
             'registrants.*.medical_conditions' => ['nullable', 'string'],
@@ -63,7 +77,9 @@ class RegistrationController extends Controller
             DB::beginTransaction();
 
             foreach ($request->registrants as $registrantData) {
-                Registration::create($registrantData);
+                Registration::create(array_merge($registrantData, [
+                    'jersey_size' => self::DEFAULT_JERSEY_SIZE,
+                ]));
             }
 
             DB::commit();
@@ -97,7 +113,8 @@ class RegistrationController extends Controller
             'registrations.*.address' => ['required', 'string'],
             'registrations.*.date_of_birth' => ['required', 'date'],
             'registrations.*.city' => ['required', 'string', 'max:255'],
-            'registrations.*.jersey_size' => ['required', 'string', 'in:XS,S,M,L,XL,XXL,XXXL'],
+            'registrations.*.gender' => ['required', 'string', 'in:Laki-laki,Perempuan'],
+            'registrations.*.jersey_size' => ['nullable', 'string'],
             'registrations.*.blood_type' => ['nullable', 'string', 'in:A,B,AB,O'],
             'registrations.*.emergency_contact_number' => ['required', 'string', 'max:20'],
             'registrations.*.medical_conditions' => ['nullable', 'string'],
@@ -119,9 +136,43 @@ class RegistrationController extends Controller
             return back()->withInput()->withErrors(['ticket_id' => 'Pilihan tiket tidak tersedia saat ini.']);
         }
 
+        // Validate participant count for bundle tickets
+        if ($ticket->participant_count !== null) {
+            if ($totalParticipants != $ticket->participant_count) {
+                return back()->withInput()->withErrors([
+                    'ticket_id' => "Paket {$ticket->name} harus untuk {$ticket->participant_count} peserta. Jumlah peserta saat ini: {$totalParticipants}."
+                ]);
+            }
+            
+            // Validate Couple Bundle: must have 1 Male and 1 Female
+            if ($ticket->name === 'Couple Bundle' && $ticket->participant_count == 2) {
+                $genders = array_column($validatedData['registrations'], 'gender');
+                $maleCount = count(array_filter($genders, fn($g) => $g === 'Laki-laki'));
+                $femaleCount = count(array_filter($genders, fn($g) => $g === 'Perempuan'));
+                
+                if ($maleCount != 1 || $femaleCount != 1) {
+                    return back()->withInput()->withErrors([
+                        'ticket_id' => 'Paket Couple Bundle harus terdiri dari 1 Laki-laki dan 1 Perempuan.'
+                    ]);
+                }
+            }
+        }
+
+        // Check if ticket has available quota
+        if (!$ticket->hasAvailableQuota($totalParticipants)) {
+            $remaining = $ticket->getRemainingQuota();
+            return back()->withInput()->withErrors([
+                'ticket_id' => "Maaf, kuota tiket ini sudah habis. Sisa kuota: {$remaining} peserta."
+            ]);
+        }
+
         try {
             DB::beginTransaction();
-            $totalAmount = $ticket->price * $totalParticipants;
+            
+            // For bundle tickets, use fixed price. For regular tickets, multiply by participant count
+            $totalAmount = $ticket->participant_count !== null 
+                ? $ticket->price 
+                : $ticket->price * $totalParticipants;
 
             $checkout = Checkout::create([
                 'order_number' => Checkout::generateOrderNumber(),
@@ -133,6 +184,11 @@ class RegistrationController extends Controller
             ]);
 
             // Create participants
+            foreach ($validatedData['registrations'] as &$participant) {
+                $participant['jersey_size'] = self::DEFAULT_JERSEY_SIZE;
+            }
+            unset($participant);
+
             foreach ($validatedData['registrations'] as $participant) {
                 $participant['checkout_id'] = $checkout->id;
                 $checkoutParticipant = \App\Models\CheckoutParticipant::create($participant);
