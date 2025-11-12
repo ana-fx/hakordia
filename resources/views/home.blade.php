@@ -35,7 +35,7 @@
                     </div>
                     <div class="rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm text-slate-700">
                         <p class="font-semibold text-primary">Race kit & jersey</p>
-                        <p class="mt-1 text-slate-600">Pengambilan race kit dibuka H-2 di venue resmi. Siapkan identitas diri & nomor order.</p>
+                        <p class="mt-1 text-slate-600">Pengambilan race pack & registrasi ulang: 4 & 5 Desember 2025 di Kopi Naga Jember. Siapkan identitas diri & nomor order.</p>
                         </div>
                         </div>
                 <div class="flex flex-col items-center gap-4">
@@ -342,7 +342,7 @@
                                 <div>
                                     <p class="text-sm font-semibold">Timeline Penting</p>
                                     <ul class="mt-1 space-y-1 text-xs text-slate-300">
-                                        <li>6 Desember 2025 · Pengambilan race kit & registrasi ulang</li>
+                                        <li>4 & 5 Desember 2025 · Pengambilan race pack & registrasi ulang · Kopi Naga Jember</li>
                                         <li>6 Desember 2025 · Start Hakordia Fun Night Run 3.9K · 19.00 WIB</li>
                                     </ul>
                                 </div>
@@ -387,7 +387,7 @@
                                     </div>
                                     <div class="space-y-2">
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Foto Race</p>
-                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>500 Finisher Medal</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>500 Medal</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Refreshment</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Guest Star</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Doorprize</p>
