@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             AdminNadineSeeder::class,
             TicketSeeder::class,
+            BundleTicketSeeder::class,
         ]);
 
         Setting::updateOrCreate(

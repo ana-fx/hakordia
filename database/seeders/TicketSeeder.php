@@ -12,6 +12,7 @@ class TicketSeeder extends Seeder
      */
     public function run(): void
     {
+        // Tiket Regular (Single Participant)
         $tiers = [
             [
                 'name' => 'Presale 1',
@@ -39,33 +40,6 @@ class TicketSeeder extends Seeder
                 'end_date' => '2025-12-05',
                 'quota' => null,
                 'notes' => 'Selama persediaan nomor masih tersedia',
-            ],
-            [
-                'name' => 'Couple Bundle',
-                'price' => 280000,
-                'participant_count' => 2,
-                'start_date' => '2025-11-09',
-                'end_date' => '2025-12-05',
-                'quota' => null,
-                'notes' => 'Paket untuk 2 peserta',
-            ],
-            [
-                'name' => 'Squad Bundle',
-                'price' => 725000,
-                'participant_count' => 5,
-                'start_date' => '2025-11-09',
-                'end_date' => '2025-12-05',
-                'quota' => null,
-                'notes' => 'Paket untuk 5 peserta',
-            ],
-            [
-                'name' => 'Community Bundle',
-                'price' => 1350000,
-                'participant_count' => 10,
-                'start_date' => '2025-11-09',
-                'end_date' => '2025-12-05',
-                'quota' => null,
-                'notes' => 'Paket untuk 10 peserta',
             ],
         ];
 
