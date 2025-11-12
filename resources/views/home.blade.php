@@ -355,7 +355,7 @@
                                         <p class="text-sm font-semibold text-primary/90">Total Hadiah</p>
                                         <div class="mt-1 flex items-baseline gap-2">
                                             <span class="text-xl font-semibold text-primary/80">Rp</span>
-                                            <span class="text-4xl font-extrabold text-primary">8.000.000</span>
+                                            <span class="text-4xl font-extrabold text-primary">9.000.000</span>
                                         </div>
                                         <p class="mt-1 text-xs font-medium uppercase text-slate-200">Podium 1, 2, 3 · Male & Female</p>
                                     </div>
