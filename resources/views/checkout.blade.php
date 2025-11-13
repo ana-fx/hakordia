@@ -109,7 +109,7 @@
                             </div>
                         <ul class="list-disc list-inside text-xs text-slate-600">
                             <li>Tulis berita transfer: {{ $checkout->order_number }}</li>
-                            <li>Konfirmasi pembayaran melalui WhatsApp admin (+62 815-1578-8271).</li>
+                            <li>Konfirmasi pembayaran melalui WhatsApp admin (+6285183360304).</li>
                             <li>Simpan bukti transfer untuk diunggah.</li>
                         </ul>
                     </div>

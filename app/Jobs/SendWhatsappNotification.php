@@ -37,7 +37,7 @@ class SendWhatsappNotification implements ShouldQueue
     {
         try {
             // Link admin WhatsApp
-            $adminWa = 'https://wa.me/6281515788271';
+            $adminWa = 'https://wa.me/6285183360304';
 
             // Pesan tambahan admin & peringatan
             $adminMsg = "\n\n*Konfirmasi pembayaran?*\nSilakan hubungi admin: {$adminWa}\n\n*Penting:*\nJangan mengirim pembayaran ke nomor rekening selain yang tertera di halaman resmi kami 0032836836\nAtas Nama: Andi Reza Zulkarnaen";
