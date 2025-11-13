@@ -41,9 +41,9 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         try {
-            $request->authenticate();
+        $request->authenticate();
 
-            $request->session()->regenerate();
+        $request->session()->regenerate();
 
             Log::info('Login successful', [
                 'email' => $request->email,
@@ -52,7 +52,7 @@ class AuthenticatedSessionController extends Controller
                 'new_session_id' => $request->session()->getId(),
             ]);
 
-            return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
         } catch (\Exception $e) {
             Log::error('Login failed', [
                 'email' => $request->email,

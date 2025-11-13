@@ -7,7 +7,7 @@ use App\Models\Registration;
 use Illuminate\Support\Facades\DB;
 use App\Models\Checkout;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\SendWhatsappNotification;
+use App\Jobs\SendEmailNotification;
 use App\Models\Setting;
 use App\Models\Ticket;
 
@@ -199,7 +199,7 @@ class RegistrationController extends Controller
             Log::info('Checkout berhasil dibuat', ['checkout' => $checkout]);
             Log::info('Transaksi commit, redirect ke checkout', ['unique_id' => $checkout->unique_id]);
 
-            // --- Kirim WhatsApp via Queue ke semua peserta ---
+            // --- Kirim Email via Queue ke semua peserta ---
             try {
                 $url = route('checkout.public', $checkout->unique_id);
                 $message = "Terima kasih sudah mendaftar Night Run 2025!\n" .
@@ -208,17 +208,20 @@ class RegistrationController extends Controller
                     "Status: {$checkout->status}\n" .
                     "Cek detail & upload bukti pembayaran di: {$url}";
                 foreach ($validatedData['registrations'] as $participant) {
-                    $wa = $participant['whatsapp_number'];
-                    if (strpos($wa, '+') !== 0) {
-                        $wa = '+62' . ltrim($wa, '0');
-                    }
-                    $wa = 'whatsapp:' . $wa;
-                    dispatch(new SendWhatsappNotification($wa, $message));
+                    $email = $participant['email'];
+                    dispatch(new SendEmailNotification(
+                        $email,
+                        $message,
+                        $url,
+                        $checkout->order_number,
+                        $checkout->total_amount,
+                        $checkout->status
+                    ));
                 }
             } catch (\Exception $e) {
-                Log::error('Gagal dispatch WhatsApp job: ' . $e->getMessage());
+                Log::error('Gagal dispatch Email job: ' . $e->getMessage());
             }
-            // --- END Kirim WhatsApp via Queue ke semua peserta ---
+            // --- END Kirim Email via Queue ke semua peserta ---
 
             return redirect()->route('checkout.public', $checkout->unique_id)
                 ->with('success', 'Pendaftaran berhasil! Silakan lakukan pembayaran.');

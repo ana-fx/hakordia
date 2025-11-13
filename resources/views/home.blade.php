@@ -110,10 +110,10 @@
 
                             @if($availableTickets->isNotEmpty())
                                 <div class="rounded-[30px] border border-primary/20 bg-white/95 px-6 py-6 shadow-xl backdrop-blur sm:px-8 sm:py-7 relative z-40">
-                                    <div>
-                                        <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-primary/70">Pilih Tahap</span>
-                                        <h3 class="mt-2 text-xl font-bold text-slate-900">Tahap tiket untuk order ini</h3>
-                                        <p class="text-sm text-slate-500">Harga dan batas waktu pembayaran mengikuti tahap yang dipilih.</p>
+                                        <div>
+                                            <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-primary/70">Pilih Tahap</span>
+                                            <h3 class="mt-2 text-xl font-bold text-slate-900">Tahap tiket untuk order ini</h3>
+                                            <p class="text-sm text-slate-500">Harga dan batas waktu pembayaran mengikuti tahap yang dipilih.</p>
                                     </div>
                                     <div class="mt-5 grid gap-5 md:grid-cols-2">
                                         <div>
@@ -134,7 +134,7 @@
                                                             <li>
                                                                 <button type="button" class="ticket-option flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-primary/5 @if($selectedTicketId == $ticket->id) bg-primary/5 @endif" data-ticket-id="{{ $ticket->id }}" data-ticket-name="{{ $ticket->name }}" data-participant-count="{{ $ticket->participant_count ?? '' }}" data-price="{{ $ticket->price }}">
                                                                     <div class="flex items-center justify-between w-full">
-                                                                        <span class="font-semibold text-slate-900">{{ $ticket->name }}</span>
+                                                                    <span class="font-semibold text-slate-900">{{ $ticket->name }}</span>
                                                                         @if($ticket->participant_count)
                                                                             <span class="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{{ $ticket->participant_count }} tiket</span>
                                                                         @endif
@@ -210,7 +210,7 @@
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Kota</label>
                                             <input type="text" name="registrations[0][city]" required maxlength="255" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Masukkan kota domisili">
                         </div>
-                            <div>
+                                        <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Jenis Kelamin</label>
                                             <div class="relative gender-dropdown" data-registrant-index="0">
                                                 <button type="button" class="gender-toggle flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-2 text-base shadow focus:outline-none focus:ring-2 focus:ring-primary">
@@ -267,7 +267,7 @@
                                                 </div>
                                                 <input type="hidden" name="registrations[0][blood_type]" class="blood-type-selected-value" value="" required>
                                             </div>
-                        </div>
+                            </div>
                             <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Riwayat Penyakit <span class="text-gray-400 font-normal">(opsional)</span></label>
                                             <textarea name="registrations[0][medical_conditions]" rows="2" maxlength="255" class="mt-1 block w-full rounded-xl border-gray-300 px-4 py-2 text-base shadow focus:border-primary focus:ring-primary" placeholder="Masukkan riwayat penyakit (opsional)"></textarea>
@@ -318,17 +318,17 @@
                                     <div class="flex items-start gap-3">
                                         <span class="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 text-primary">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        </span>
-                                        <div>
+                                </span>
+                                <div>
                                             <p class="text-sm font-semibold text-white">Sabtu, 6 Desember 2025</p>
                                             <p>Mulai pukul 19.00 WIB</p>
-                                        </div>
-                                    </div>
+                                </div>
+                            </div>
                                     <div class="flex items-start gap-3">
                                         <span class="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/20 text-secondary">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 12.414a4 4 0 10-1.414 1.414l4.243 4.243a1 1 0 001.414-1.414z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                        </span>
-                                        <div>
+                                </span>
+                                <div>
                                             <p class="text-sm font-semibold text-white">Alun-Alun Jember Nusantara</p>
                                             <p>Jl. Nusantara No. 1, Jember</p>
                                         </div>
@@ -387,13 +387,13 @@
                                     </div>
                                     <div class="space-y-2">
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Foto Race</p>
-                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>500 Medal</p>
+                                        <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Medal</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Refreshment</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Guest Star</p>
                                         <p class="flex items-start gap-2"><span class="mt-1 h-4 w-4 flex items-center justify-center rounded-full bg-lime-400/20 text-lime-300">✔</span>Doorprize</p>
-                                    </div>
                                 </div>
                             </div>
+                        </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
                             <p class="text-sm font-semibold text-white">Tips cepat registrasi</p>
                             <ul class="mt-3 space-y-2 text-xs text-slate-300">
@@ -537,7 +537,7 @@
             panel.classList.toggle('hidden');
         });
 
-                options.forEach(option => {
+        options.forEach(option => {
             option.addEventListener('click', function () {
                 const id = this.dataset.ticketId;
                 const name = this.dataset.ticketName;

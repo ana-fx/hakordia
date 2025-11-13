@@ -1,6 +1,6 @@
 <!-- Hero Section -->
 <section class="relative overflow-hidden bg-slate-950 text-slate-50">
-    <div class="absolute inset-0 bg-[url('/images/landing%20page.png')] bg-cover bg-center opacity-35 mix-blend-lighten"></div>
+    <div class="absolute inset-0 bg-[url('/images/landing%20page.webp')] bg-cover bg-center opacity-35 mix-blend-lighten"></div>
     <div class="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-primary/60"></div>
 
     <div class="relative max-w-6xl mx-auto px-6 py-24 lg:py-28">
@@ -53,7 +53,7 @@
             <div class="relative">
                 <div class="relative overflow-hidden rounded-[32px] border border-white/15 bg-white/10 px-4 py-4 shadow-[0_40px_120px_-50px_rgba(15,23,42,0.9)] backdrop-blur">
                     <div class="aspect-[16/9] w-full">
-                        <img src="{{ asset('images/landing page.png') }}" alt="Runner collage" class="h-full w-full rounded-[24px] object-cover" loading="lazy">
+                        <img src="{{ asset('images/landing page.webp') }}" alt="Runner collage" class="h-full w-full rounded-[24px] object-cover" loading="lazy">
                     </div>
                 </div>
             </div>
