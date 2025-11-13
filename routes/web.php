@@ -66,21 +66,6 @@ Route::view('/syarat-ketentuan', 'policy.terms')->name('policy.terms');
 // Test Email Route (untuk testing saja, hapus di production)
 Route::get('/test-email', [\App\Http\Controllers\TestEmailController::class, 'test'])->name('test.email');
 
-// Preview Email Template Route (untuk preview template email)
-Route::get('/preview-email', function () {
-    return view('emails.registration-notification', [
-        'emailMessage' => "Terima kasih sudah mendaftar Night Run 2025!\n\n" .
-            "Order: PREVIEW-" . date('YmdHis') . "\n" .
-            "Total: Rp 150.000\n" .
-            "Status: waiting\n\n" .
-            "Cek detail & upload bukti pembayaran di: " . route('home'),
-        'checkoutUrl' => route('home'),
-        'orderNumber' => 'PREVIEW-' . date('YmdHis'),
-        'totalAmount' => 150000,
-        'status' => 'waiting',
-    ]);
-})->name('preview.email');
-
 // Admin auth routes
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
