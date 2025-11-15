@@ -553,7 +553,10 @@
                 // Auto-populate registrants if bundle is selected
                 if (participantCount && participantCount !== '') {
                     const targetCount = parseInt(participantCount);
-                    const currentCount = document.querySelectorAll('.registrant-form').length;
+                    
+                    // Sync registrantCount with actual form count first
+                    registrantCount = document.querySelectorAll('.registrant-form').length;
+                    const currentCount = registrantCount;
 
                     // Remove excess registrants if current count > target
                     if (currentCount > targetCount) {
@@ -571,9 +574,21 @@
                     }
 
                     // Add registrants if current count < target (skip bundle check for auto-populate)
+                    // Make sure registrantTemplateHTML is available
+                    if (!registrantTemplateHTML) {
+                        const firstForm = document.querySelector('.registrant-form');
+                        if (firstForm) {
+                            registrantTemplateHTML = firstForm.outerHTML;
+                        }
+                    }
+
+                    // Add registrants until we reach target count
                     while (document.querySelectorAll('.registrant-form').length < targetCount) {
                         addRegistrant(true);
                     }
+
+                    // Sync registrantCount with actual form count after auto-populate
+                    registrantCount = document.querySelectorAll('.registrant-form').length;
 
                     // Hide add button and remove buttons if bundle is selected
                     const addBtn = document.getElementById('addRegistrantBtn');
@@ -586,10 +601,15 @@
                         btn.classList.add('hidden');
                     });
                 } else {
-                    // Show add button for non-bundle tickets
+                    // Show add button for non-bundle tickets (check if not at max)
                     const addBtn = document.getElementById('addRegistrantBtn');
                     if (addBtn) {
-                        addBtn.classList.remove('hidden');
+                        const currentCount = document.querySelectorAll('.registrant-form').length;
+                        if (currentCount >= maxRegistrants) {
+                            addBtn.classList.add('hidden');
+                        } else {
+                            addBtn.classList.remove('hidden');
+                        }
                     }
 
                     // Show remove buttons for non-bundle tickets (except first one)
@@ -740,15 +760,45 @@
             }
         }
 
-        if (registrantCount >= maxRegistrants) {
-            alert('Maksimal 5 pendaftar');
-            return;
+        // Skip max check if called from auto-populate (skipBundleCheck = true)
+        if (!skipBundleCheck) {
+            // Get max registrants based on selected ticket
+            let maxAllowed = maxRegistrants; // Default: 5 for regular tickets
+            const selectedTicketValue = document.getElementById('ticketSelectedValue');
+            if (selectedTicketValue) {
+                const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${selectedTicketValue.value}"]`);
+                if (selectedOption && selectedOption.dataset.participantCount && selectedOption.dataset.participantCount !== '') {
+                    // For bundle tickets, use participant_count as max
+                    maxAllowed = parseInt(selectedOption.dataset.participantCount);
+                }
+            }
+
+            if (registrantCount >= maxAllowed) {
+                alert(`Maksimal ${maxAllowed} pendaftar`);
+                return;
+            }
+        }
+
+        // Make sure registrantTemplateHTML is available
+        if (!registrantTemplateHTML) {
+            const firstForm = document.querySelector('.registrant-form');
+            if (firstForm) {
+                registrantTemplateHTML = firstForm.outerHTML;
+            } else {
+                console.error('Cannot add registrant: template not found');
+                return;
+            }
         }
 
         registrantCount++;
         const wrapper = document.createElement('div');
         wrapper.innerHTML = registrantTemplateHTML;
         const template = wrapper.firstElementChild;
+        
+        if (!template) {
+            console.error('Cannot add registrant: template is invalid');
+            return;
+        }
 
         const numberBadge = template.querySelector('[data-registrant-number]');
         if (numberBadge) {
@@ -812,7 +862,18 @@
         initBloodTypeDropdowns(template);
         initGenderDropdowns(template);
 
-        if (registrantCount >= maxRegistrants) {
+        // Get max registrants based on selected ticket to hide/show add button
+        let maxAllowed = maxRegistrants; // Default: 5 for regular tickets
+        const selectedTicketValue = document.getElementById('ticketSelectedValue');
+        if (selectedTicketValue) {
+            const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${selectedTicketValue.value}"]`);
+            if (selectedOption && selectedOption.dataset.participantCount && selectedOption.dataset.participantCount !== '') {
+                // For bundle tickets, use participant_count as max
+                maxAllowed = parseInt(selectedOption.dataset.participantCount);
+            }
+        }
+
+        if (registrantCount >= maxAllowed) {
             document.getElementById('addRegistrantBtn').classList.add('hidden');
         }
     }
