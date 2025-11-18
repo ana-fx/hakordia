@@ -101,8 +101,8 @@
         </article>
     </section>
 
-    <section class="rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-200 px-6 py-5">
+    <section class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="border-b border-slate-200 px-4 py-4 md:px-6 md:py-5">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900">Daftar Order</h2>
@@ -114,7 +114,7 @@
                                 </button>
                             </div>
         </div>
-        <div class="px-6 py-5">
+        <div class="px-4 py-4 md:px-6 md:py-5">
             <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col gap-4 md:flex-row" id="searchForm">
                                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary" placeholder="Cari order, nama, email, NIK, WhatsApp, kota...">
@@ -134,7 +134,7 @@
                         </form>
         </div>
 
-        <div id="advancedSearch" class="hidden border-t border-slate-100 bg-slate-50 px-6 py-5">
+        <div id="advancedSearch" class="hidden border-t border-slate-100 bg-slate-50 px-4 py-4 md:px-6 md:py-5">
             <div class="grid gap-4 md:grid-cols-3">
                                     <div>
                     <label class="block text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Status</label>
@@ -174,36 +174,37 @@
                                 </div>
                             </div>
 
-        <div class="overflow-x-auto px-6 pb-6">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50">
-                    <tr class="text-left text-[0.68rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                        <th class="px-4 py-3">Order Number</th>
-                        <th class="px-4 py-3">Tiket</th>
-                        <th class="px-4 py-3">Nama</th>
-                        <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">WhatsApp</th>
-                        <th class="px-4 py-3">Bukti Pembayaran</th>
-                        <th class="px-4 py-3">Status</th>
-                        <th class="px-4 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+        <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-6 pb-4 md:pb-6">
+            <div class="inline-block min-w-full align-middle">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr class="text-left text-[0.65rem] md:text-[0.68rem] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Order Number</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Tiket</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Nama</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap hidden md:table-cell">Email</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap hidden lg:table-cell">WhatsApp</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Bukti</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Status</th>
+                            <th class="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                <tbody class="divide-y divide-slate-100 text-xs md:text-sm text-slate-700">
                                 @foreach ($checkouts as $checkout)
                                     @php
                                         $isBundle = $checkout->ticket && $checkout->ticket->participant_count !== null;
                                         $participantCount = $checkout->participants->count();
                                         $rowspan = $isBundle && $participantCount > 1 ? $participantCount : 1;
                                     @endphp
-                                    
+
                                     @if($isBundle && $participantCount > 1)
                                         {{-- Bundle Ticket: Multiple rows, one participant per row --}}
                                         @foreach($checkout->participants as $index => $participant)
                                             <tr class="hover:bg-primary/5 transition">
                                                 @if($index === 0)
                                                     {{-- First row: Show all common columns with rowspan --}}
-                                                    <td class="px-4 py-4 font-semibold text-slate-900" rowspan="{{ $rowspan }}">{{ $checkout->order_number }}</td>
-                                                    <td class="px-4 py-4 text-slate-600" rowspan="{{ $rowspan }}">
+                                                    <td class="px-2 md:px-4 py-3 md:py-4 font-semibold text-slate-900 text-xs md:text-sm" rowspan="{{ $rowspan }}">{{ $checkout->order_number }}</td>
+                                                    <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm" rowspan="{{ $rowspan }}">
                                                         @if($checkout->ticket)
                                                             <span class="font-medium">{{ $checkout->ticket->name }}</span>
                                                         @else
@@ -211,49 +212,49 @@
                                                         @endif
                                                     </td>
                                                 @endif
-                                                
+
                                                 {{-- Participant-specific columns --}}
-                                                <td class="px-4 py-4 text-slate-600">{{ $participant->full_name }}</td>
-                                                <td class="px-4 py-4 text-slate-600">
-                                                    <a href="mailto:{{ $participant->email }}" class="text-slate-600 hover:text-blue-400 hover:underline">
+                                                <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm">{{ $participant->full_name }}</td>
+                                                <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm hidden md:table-cell">
+                                                    <a href="mailto:{{ $participant->email }}" class="text-slate-600 hover:text-blue-400 hover:underline truncate block max-w-[200px]">
                                                         {{ $participant->email }}
                                                     </a>
                                                 </td>
-                                                <td class="px-4 py-4 text-slate-600">
+                                                <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm hidden lg:table-cell">
                                                     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $participant->whatsapp_number) }}" target="_blank" class="text-slate-600 hover:text-blue-400 hover:underline">
                                                         {{ $participant->whatsapp_number }}
                                                     </a>
                                                 </td>
-                                                
+
                                                 @if($index === 0)
                                                     {{-- First row: Show payment proof, status, and actions with rowspan --}}
-                                                    <td class="px-4 py-4 align-top" rowspan="{{ $rowspan }}">
+                                                    <td class="px-2 md:px-4 py-3 md:py-4 align-top" rowspan="{{ $rowspan }}">
                                                         @if($checkout->payment_proof)
                                                             <button onclick="showImageModal('{{ asset('storage/'.$checkout->payment_proof) }}')" class="text-primary hover:text-primary/80" title="Lihat Bukti">
-                                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                             </button>
                                                         @else
                                                             <span class="text-slate-400">—</span>
                                                         @endif
                                                     </td>
-                                                    <td class="px-4 py-4 align-top" rowspan="{{ $rowspan }}">
-                                                        <span id="badge-status-{{ $checkout->id }}" data-status-badge data-status="{{ $checkout->status }}" onclick="cycleStatus({{ $checkout->id }})" class="badge rounded-pill d-inline-flex align-items-center fw-semibold text-uppercase px-3 py-2 cursor-pointer gap-1 {{ StatusStyle::badgeClasses($checkout->status) }}">
+                                                    <td class="px-2 md:px-4 py-3 md:py-4 align-top" rowspan="{{ $rowspan }}">
+                                                        <span id="badge-status-{{ $checkout->id }}" data-status-badge data-status="{{ $checkout->status }}" onclick="cycleStatus({{ $checkout->id }})" class="badge rounded-pill d-inline-flex align-items-center fw-semibold text-uppercase px-2 md:px-3 py-1 md:py-2 cursor-pointer gap-1 text-[0.7rem] md:text-xs {{ StatusStyle::badgeClasses($checkout->status) }}">
                                                             {{ ucfirst($checkout->status) }}
                                                         </span>
                                                     </td>
-                                                    <td class="px-4 py-4 align-top" rowspan="{{ $rowspan }}">
-                                                        <div class="flex items-center gap-3 text-slate-500">
+                                                    <td class="px-2 md:px-4 py-3 md:py-4 align-top" rowspan="{{ $rowspan }}">
+                                                        <div class="flex items-center gap-2 md:gap-3 text-slate-500">
                                                             <a href="{{ route('admin.orderDetail', $checkout->order_number) }}" class="hover:text-primary" title="Lihat Detail">
-                                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                             </a>
                                                             <a href="{{ route('admin.editOrder', $checkout->order_number) }}" class="hover:text-secondary" title="Edit Order">
-                                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z"/></svg>
+                                                                <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z"/></svg>
                                                             </a>
                                                             <form action="{{ route('admin.deleteOrder', $checkout->order_number) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?');">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="hover:text-red-500" title="Hapus Order">
-                                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                    <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                                 </button>
                                                             </form>
                                                         </div>
@@ -264,25 +265,25 @@
                                     @else
                                         {{-- Regular Ticket: Single row --}}
                                         <tr class="hover:bg-primary/5 transition">
-                                            <td class="px-4 py-4 font-semibold text-slate-900">{{ $checkout->order_number }}</td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-2 md:px-4 py-3 md:py-4 font-semibold text-slate-900 text-xs md:text-sm">{{ $checkout->order_number }}</td>
+                                            <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm">
                                                 @if($checkout->ticket)
                                                     <span class="font-medium">{{ $checkout->ticket->name }}</span>
                                                 @else
                                                     <span class="text-slate-400">—</span>
                                                 @endif
                                             </td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm">
                                                 @forelse($checkout->participants as $p)
                                                     <div>{{ $p->full_name }}</div>
                                                 @empty
                                                     <span class="text-slate-400">—</span>
                                                 @endforelse
                                             </td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm hidden md:table-cell">
                                                 @forelse($checkout->participants as $p)
                                                     <div>
-                                                        <a href="mailto:{{ $p->email }}" class="text-slate-600 hover:text-blue-400 hover:underline">
+                                                        <a href="mailto:{{ $p->email }}" class="text-slate-600 hover:text-blue-400 hover:underline truncate block max-w-[200px]">
                                                             {{ $p->email }}
                                                         </a>
                                                     </div>
@@ -290,7 +291,7 @@
                                                     <span class="text-slate-400">—</span>
                                                 @endforelse
                                             </td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-2 md:px-4 py-3 md:py-4 text-slate-600 text-xs md:text-sm hidden lg:table-cell">
                                                 @forelse($checkout->participants as $p)
                                                     <div>
                                                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $p->whatsapp_number) }}" target="_blank" class="text-slate-600 hover:text-blue-400 hover:underline">
@@ -301,33 +302,33 @@
                                                     <span class="text-slate-400">—</span>
                                                 @endforelse
                                             </td>
-                                            <td class="px-4 py-4">
+                                            <td class="px-2 md:px-4 py-3 md:py-4">
                                                 @if($checkout->payment_proof)
                                                     <button onclick="showImageModal('{{ asset('storage/'.$checkout->payment_proof) }}')" class="text-primary hover:text-primary/80" title="Lihat Bukti">
-                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                     </button>
                                                 @else
                                                     <span class="text-slate-400">—</span>
                                                 @endif
                                             </td>
-                                            <td class="px-4 py-4">
-                                                <span id="badge-status-{{ $checkout->id }}" data-status-badge data-status="{{ $checkout->status }}" onclick="cycleStatus({{ $checkout->id }})" class="badge rounded-pill d-inline-flex align-items-center fw-semibold text-uppercase px-3 py-2 cursor-pointer gap-1 {{ StatusStyle::badgeClasses($checkout->status) }}">
+                                            <td class="px-2 md:px-4 py-3 md:py-4">
+                                                <span id="badge-status-{{ $checkout->id }}" data-status-badge data-status="{{ $checkout->status }}" onclick="cycleStatus({{ $checkout->id }})" class="badge rounded-pill d-inline-flex align-items-center fw-semibold text-uppercase px-2 md:px-3 py-1 md:py-2 cursor-pointer gap-1 text-[0.7rem] md:text-xs {{ StatusStyle::badgeClasses($checkout->status) }}">
                                                     {{ ucfirst($checkout->status) }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-4">
-                                                <div class="flex items-center gap-3 text-slate-500">
+                                            <td class="px-2 md:px-4 py-3 md:py-4">
+                                                <div class="flex items-center gap-2 md:gap-3 text-slate-500">
                                                     <a href="{{ route('admin.orderDetail', $checkout->order_number) }}" class="hover:text-primary" title="Lihat Detail">
-                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                     </a>
                                                     <a href="{{ route('admin.editOrder', $checkout->order_number) }}" class="hover:text-secondary" title="Edit Order">
-                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z"/></svg>
+                                                        <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z"/></svg>
                                                     </a>
                                                     <form action="{{ route('admin.deleteOrder', $checkout->order_number) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="hover:text-red-500" title="Hapus Order">
-                                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                            <svg class="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -337,7 +338,8 @@
                                 @endforeach
                             </tbody>
                         </table>
-    </div>
+                    </div>
+        </div>
 
         <div class="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
             <p>Menampilkan <span class="font-semibold text-slate-800">{{ $checkouts->firstItem() }}</span> - <span class="font-semibold text-slate-800">{{ $checkouts->lastItem() }}</span> dari <span class="font-semibold text-slate-800">{{ $checkouts->total() }}</span> data</p>

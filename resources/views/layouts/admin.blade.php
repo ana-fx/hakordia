@@ -26,7 +26,7 @@
 <body class="bg-slate-100">
 @php
     $waitingCount = \App\Models\Checkout::where('status', 'waiting')->count();
-    
+
     $navItems = [
         [
             'label' => 'Dashboard',
@@ -124,7 +124,7 @@
             <span class="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">HK</span>
         </div>
 
-        <main class="flex-1 px-6 py-8 md:px-10">
+        <main class="flex-1 px-4 py-6 md:px-6 lg:px-10 md:py-8 overflow-x-hidden">
             @yield('content')
         </main>
 
