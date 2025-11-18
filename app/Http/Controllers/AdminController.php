@@ -299,4 +299,100 @@ class AdminController extends Controller
 
         return redirect()->route('admin.dashboard')->with('success', 'Order berhasil dihapus.');
     }
+
+    /**
+     * Resend payment success email untuk transaksi yang sudah paid
+     */
+    public function resendPaymentEmail(Request $request, $order_number)
+    {
+        $checkout = Checkout::with(['participants', 'ticket'])->where('order_number', $order_number)->firstOrFail();
+
+        // Hanya bisa resend untuk checkout yang statusnya paid atau verified
+        if (!in_array($checkout->status, ['paid', 'verified'])) {
+            $errorMessage = 'Email hanya dapat dikirim ulang untuk transaksi yang sudah dibayar (paid/verified).';
+            
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 400);
+            }
+            
+            return back()->with('error', $errorMessage);
+        }
+
+        try {
+            $url = url(route('checkout.public', $checkout->unique_id, false));
+            $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
+            $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
+            
+            $emailsSent = 0;
+            $emailsFailed = [];
+
+            // Send email to all participants menggunakan data asli
+            foreach ($checkout->participants as $participant) {
+                try {
+                    \App\Jobs\SendPaymentSuccessEmail::dispatch(
+                        $participant->email,
+                        $url,
+                        $checkout->order_number,
+                        $checkout->total_amount,
+                        $paidAt,
+                        $ticketName
+                    );
+                    $emailsSent++;
+                } catch (\Exception $e) {
+                    $emailsFailed[] = $participant->email . ': ' . $e->getMessage();
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim email ke ' . $participant->email . ': ' . $e->getMessage());
+                }
+            }
+            
+            \Illuminate\Support\Facades\Log::info('Payment success emails resent', [
+                'checkout_id' => $checkout->id,
+                'order_number' => $checkout->order_number,
+                'participants_count' => $checkout->participants->count(),
+                'emails_sent' => $emailsSent,
+                'emails_failed' => count($emailsFailed)
+            ]);
+
+            if ($emailsSent > 0) {
+                $message = "Email berhasil dikirim ulang ke {$emailsSent} peserta.";
+                if (count($emailsFailed) > 0) {
+                    $message .= " Gagal: " . implode(', ', $emailsFailed);
+                }
+                
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => $message
+                    ]);
+                }
+                
+                return back()->with('success', $message);
+            } else {
+                $errorMessage = 'Gagal mengirim email ke semua peserta: ' . implode(', ', $emailsFailed);
+                
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMessage
+                    ], 400);
+                }
+                
+                return back()->with('error', $errorMessage);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal resend payment success email: ' . $e->getMessage());
+            $errorMessage = 'Gagal mengirim email: ' . $e->getMessage();
+            
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 500);
+            }
+            
+            return back()->with('error', $errorMessage);
+        }
+    }
 }

@@ -301,8 +301,8 @@
                 </div>
             </form>
 
-            <!-- Toast Notification -->
-            <div id="toast" class="fixed bottom-6 right-6 z-50 hidden min-w-[220px] max-w-xs rounded-full px-4 py-3 text-sm font-semibold text-white shadow-xl"></div>
+            <!-- Toast Notification Container -->
+            <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
                     </div>
 
                     <aside class="space-y-8 rounded-[34px] border border-white/10 bg-slate-950 px-6 py-8 text-slate-50 shadow-[0_30px_90px_-30px_rgba(15,23,42,0.8)] md:sticky md:top-24 md:self-start">
@@ -472,20 +472,89 @@
 
 @push('scripts')
 <script>
-    // Toast notification function (similar to admin dashboard)
+    // Toast notification function dengan Tailwind CSS
     function showToast(message, type = 'error') {
-        const toast = document.getElementById('toast');
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto flex items-center gap-3 min-w-[280px] max-w-md rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-2xl transform transition-all duration-300 ease-out translate-x-full opacity-0';
+        
+        // Set background color based on type
+        if (type === 'success') {
+            toast.classList.add('bg-green-500');
+        } else if (type === 'error') {
+            toast.classList.add('bg-red-500');
+        } else if (type === 'warning') {
+            toast.classList.add('bg-amber-500');
+        } else if (type === 'info') {
+            toast.classList.add('bg-blue-500');
+        } else {
+            toast.classList.add('bg-primary');
+        }
+
+        // Create icon based on type
+        let iconSvg = '';
+        if (type === 'success') {
+            iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+        } else if (type === 'error') {
+            iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+        } else if (type === 'warning') {
+            iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+        } else {
+            iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+        }
+
+        // Create close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'ml-auto flex-shrink-0 rounded-full p-1 text-white/80 hover:bg-white/20 transition';
+        closeBtn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+        closeBtn.onclick = () => removeToast(toast);
+
+        // Build toast content
+        toast.innerHTML = `
+            ${iconSvg}
+            <span class="flex-1">${message}</span>
+        `;
+        toast.appendChild(closeBtn);
+
+        // Add to container
+        container.appendChild(toast);
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            toast.classList.add('translate-x-0', 'opacity-100');
+        });
+
+        // Auto remove after 4 seconds
+        const timeout = setTimeout(() => {
+            removeToast(toast);
+        }, 4000);
+
+        // Store timeout ID for cleanup
+        toast.dataset.timeout = timeout;
+    }
+
+    function removeToast(toast) {
         if (!toast) return;
 
-        toast.textContent = message;
-        toast.className = `fixed bottom-6 right-6 z-50 min-w-[220px] max-w-xs rounded-full px-4 py-3 text-sm font-semibold text-white shadow-xl ${type === 'success' ? 'bg-primary' : 'bg-red-500'}`;
-        toast.classList.remove('hidden');
-        toast.style.display = 'block';
+        // Clear timeout if exists
+        if (toast.dataset.timeout) {
+            clearTimeout(toast.dataset.timeout);
+        }
 
+        // Animate out
+        toast.classList.add('translate-x-full', 'opacity-0');
+        toast.classList.remove('translate-x-0', 'opacity-100');
+
+        // Remove from DOM after animation
         setTimeout(() => {
-            toast.style.display = 'none';
-            toast.classList.add('hidden');
-        }, 3000);
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
     }
 
     function validateCoupleBundle(event) {

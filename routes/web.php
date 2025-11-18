@@ -55,6 +55,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     Route::get('/order/{order_number}/detail', [AdminController::class, 'orderDetail'])->name('orderDetail');
     Route::get('/order/{order_number}/edit', [AdminController::class, 'editOrder'])->name('editOrder');
     Route::post('/order/{order_number}/edit', [AdminController::class, 'updateOrder'])->name('updateOrder');
+    Route::post('/order/{order_number}/resend-email', [AdminController::class, 'resendPaymentEmail'])->name('resendPaymentEmail');
     Route::delete('/order/{order_number}', [AdminController::class, 'deleteOrder'])->name('deleteOrder');
 
     Route::resource('tickets', TicketController::class)->except(['show']);

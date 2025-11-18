@@ -8,7 +8,6 @@ use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PaymentSuccessNotification extends Mailable
 {
@@ -19,7 +18,6 @@ class PaymentSuccessNotification extends Mailable
     public $totalAmount;
     public $paidAt;
     public $ticketName;
-    public $qrCode;
 
     /**
      * Create a new message instance.
@@ -31,25 +29,6 @@ class PaymentSuccessNotification extends Mailable
         $this->totalAmount = $totalAmount;
         $this->paidAt = $paidAt;
         $this->ticketName = $ticketName;
-        
-        // Generate QR Code as PNG using Imagick
-        $this->qrCode = null; // Initialize as null
-        try {
-            $qrCodeImage = QrCode::format('png')
-                ->size(200)
-                ->margin(1)
-                ->generate($checkoutUrl);
-            
-            $this->qrCode = 'data:image/png;base64,' . base64_encode($qrCodeImage);
-            
-            \Illuminate\Support\Facades\Log::info('QR code generated as PNG for email', [
-                'qr_code_length' => strlen($this->qrCode),
-                'image_length' => strlen($qrCodeImage)
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to generate PNG QR code for email (Imagick required): ' . $e->getMessage());
-            $this->qrCode = null;
-        }
     }
 
     /**
@@ -79,7 +58,6 @@ class PaymentSuccessNotification extends Mailable
                 'totalAmount' => $this->totalAmount,
                 'paidAt' => $this->paidAt,
                 'ticketName' => $this->ticketName ?? null,
-                'qrCode' => $this->qrCode ?? null,
             ],
         );
     }

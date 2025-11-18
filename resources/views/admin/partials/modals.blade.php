@@ -19,5 +19,6 @@
     </div>
 </div>
 
-<div id="toast" class="fixed bottom-6 right-6 z-50 hidden min-w-[220px] max-w-xs rounded-full px-4 py-3 text-sm font-semibold text-white shadow-xl"></div>
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
 

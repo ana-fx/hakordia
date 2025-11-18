@@ -15,6 +15,22 @@
 @endphp
 
 <div class="mx-auto max-w-4xl px-4 py-12 print:px-0">
+    @if(session('success'))
+        <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div class="flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm print:border print:rounded-none print:shadow-none">
         <header class="flex flex-col gap-3 border-b border-slate-200 px-6 py-6 print:px-4 print:py-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -193,7 +209,16 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     Kembali ke Dashboard
                 </a>
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
+                    @if(in_array($checkout->status, ['paid', 'verified']))
+                        <form id="resendEmailForm" action="{{ route('admin.resendPaymentEmail', $checkout->order_number) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" id="resendEmailBtn" class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <span id="resendEmailBtnText">Kirim Ulang Email</span>
+                            </button>
+                        </form>
+                    @endif
                     <a href="{{ route('admin.editOrder', $checkout->order_number) }}" class="inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2 text-sm font-semibold text-white transition hover:bg-secondary/90">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z"/></svg>
                         Edit Order
@@ -207,14 +232,259 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+<!-- Confirmation Modal -->
+<div id="resendEmailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="mx-4 w-full max-w-md transform scale-95 rounded-2xl bg-white shadow-2xl opacity-0 transition-all duration-200">
+        <div class="px-6 py-5">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
+                    <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-slate-900">Konfirmasi Kirim Ulang Email</h3>
+                    <p class="mt-1 text-sm text-slate-600">Apakah Anda yakin ingin mengirim ulang email payment success ke semua peserta?</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <button id="resendEmailModalCancel" type="button" class="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                Batal
+            </button>
+            <button id="resendEmailModalConfirm" type="button" class="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90">
+                Ya, Kirim Ulang
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
-        .then(() => alert('Nomor rekening berhasil disalin!'))
-        .catch(() => alert('Gagal menyalin nomor rekening.'));
+        .then(() => showToast('Nomor rekening berhasil disalin!', 'success'))
+        .catch(() => showToast('Gagal menyalin nomor rekening.', 'error'));
 }
+
+// Toast notification function dengan Tailwind CSS
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'pointer-events-auto flex items-center gap-3 min-w-[280px] max-w-md rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-2xl transform transition-all duration-300 ease-out translate-x-full opacity-0';
+    
+    // Set background color based on type
+    if (type === 'success') {
+        toast.classList.add('bg-green-500');
+    } else if (type === 'error') {
+        toast.classList.add('bg-red-500');
+    } else if (type === 'warning') {
+        toast.classList.add('bg-amber-500');
+    } else if (type === 'info') {
+        toast.classList.add('bg-blue-500');
+    } else {
+        toast.classList.add('bg-primary');
+    }
+
+    // Create icon based on type
+    let iconSvg = '';
+    if (type === 'success') {
+        iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+    } else if (type === 'error') {
+        iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+    } else if (type === 'warning') {
+        iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+    } else {
+        iconSvg = '<svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+    }
+
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'ml-auto flex-shrink-0 rounded-full p-1 text-white/80 hover:bg-white/20 transition';
+    closeBtn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+    closeBtn.onclick = () => removeToast(toast);
+
+    // Build toast content
+    toast.innerHTML = `
+        ${iconSvg}
+        <span class="flex-1">${message}</span>
+    `;
+    toast.appendChild(closeBtn);
+
+    // Add to container
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+        toast.classList.add('translate-x-0', 'opacity-100');
+    });
+
+    // Auto remove after 4 seconds
+    const timeout = setTimeout(() => {
+        removeToast(toast);
+    }, 4000);
+
+    // Store timeout ID for cleanup
+    toast.dataset.timeout = timeout;
+}
+
+function removeToast(toast) {
+    if (!toast) return;
+
+    // Clear timeout if exists
+    if (toast.dataset.timeout) {
+        clearTimeout(toast.dataset.timeout);
+    }
+
+    // Animate out
+    toast.classList.add('translate-x-full', 'opacity-0');
+    toast.classList.remove('translate-x-0', 'opacity-100');
+
+    // Remove from DOM after animation
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Handle resend email form dengan AJAX dan Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const resendEmailForm = document.getElementById('resendEmailForm');
+    const resendEmailBtn = document.getElementById('resendEmailBtn');
+    const resendEmailBtnText = document.getElementById('resendEmailBtnText');
+    const resendEmailModal = document.getElementById('resendEmailModal');
+    const resendEmailModalConfirm = document.getElementById('resendEmailModalConfirm');
+    const resendEmailModalCancel = document.getElementById('resendEmailModalCancel');
+
+    // Function to show modal
+    function showModal() {
+        if (resendEmailModal) {
+            resendEmailModal.classList.remove('hidden');
+            resendEmailModal.classList.add('flex');
+            // Add animation
+            setTimeout(() => {
+                const modalContent = resendEmailModal.querySelector('div > div');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }
+            }, 10);
+        }
+    }
+
+    // Function to hide modal
+    function hideModal() {
+        if (resendEmailModal) {
+            const modalContent = resendEmailModal.querySelector('div > div');
+            if (modalContent) {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+            }
+            setTimeout(() => {
+                resendEmailModal.classList.add('hidden');
+                resendEmailModal.classList.remove('flex');
+            }, 200);
+        }
+    }
+
+    // Function to send email
+    function sendEmail() {
+        hideModal();
+
+        // Disable button
+        resendEmailBtn.disabled = true;
+        resendEmailBtnText.textContent = 'Mengirim...';
+
+        // Get form data
+        const formData = new FormData(resendEmailForm);
+        const url = resendEmailForm.action;
+        const token = formData.get('_token');
+
+        // Send AJAX request
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(data => {
+                    if (data && data.message) {
+                        showToast(data.message, data.success ? 'success' : 'error');
+                    } else {
+                        showToast('Email berhasil dikirim ulang!', 'success');
+                    }
+                });
+            } else {
+                // If redirected or HTML response, show success message
+                showToast('Email berhasil dikirim ulang!', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Gagal mengirim email. Silakan coba lagi.', 'error');
+        })
+        .finally(() => {
+            // Re-enable button
+            resendEmailBtn.disabled = false;
+            resendEmailBtnText.textContent = 'Kirim Ulang Email';
+        });
+    }
+
+    // Handle form submit - show modal instead of direct submit
+    if (resendEmailForm) {
+        resendEmailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            showModal();
+        });
+    }
+
+    // Handle confirm button
+    if (resendEmailModalConfirm) {
+        resendEmailModalConfirm.addEventListener('click', function() {
+            sendEmail();
+        });
+    }
+
+    // Handle cancel button
+    if (resendEmailModalCancel) {
+        resendEmailModalCancel.addEventListener('click', function() {
+            hideModal();
+        });
+    }
+
+    // Close modal when clicking outside
+    if (resendEmailModal) {
+        resendEmailModal.addEventListener('click', function(e) {
+            if (e.target === resendEmailModal) {
+                hideModal();
+            }
+        });
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && resendEmailModal && !resendEmailModal.classList.contains('hidden')) {
+            hideModal();
+        }
+    });
+});
 </script>
 @endpush

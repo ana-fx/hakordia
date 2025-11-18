@@ -136,23 +136,6 @@
                         </td>
                     </tr>
 
-                    <!-- QR Code Section -->
-                    @if(isset($qrCode) && $qrCode)
-                    <tr>
-                        <td style="padding: 30px 40px; background-color: #ffffff; text-align: center;">
-                            <div style="background-color: #f9fafb; padding: 30px; border-radius: 8px; display: inline-block;">
-                                <p style="margin: 0 0 16px 0; color: #111827; font-size: 14px; font-weight: 600;">Scan QR Code untuk Akses Detail Order</p>
-                                <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <img src="{{ $qrCode }}" alt="QR Code" style="display: block; width: 200px; height: 200px;">
-                                </div>
-                                <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 12px; max-width: 300px; word-break: break-all;">
-                                    {{ $checkoutUrl }}
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endif
-
                     <!-- Action Button -->
                     <tr>
                         <td style="padding: 0 40px 30px 40px; background-color: #ffffff; text-align: center;">
