@@ -12,6 +12,14 @@
         ['key' => 'paid', 'label' => 'Pembayaran Diterima'],
         ['key' => 'verified', 'label' => 'Terverifikasi'],
     ];
+    
+    // Debug: Ensure qrCode variable exists
+    if (!isset($qrCode)) {
+        \Illuminate\Support\Facades\Log::warning('QR Code variable not set in checkout view', [
+            'available_vars' => array_keys(get_defined_vars())
+        ]);
+        $qrCode = null;
+    }
 @endphp
 
 <div class="mx-auto max-w-4xl px-4 py-12 print:px-0">
@@ -69,7 +77,6 @@
                                 <th class="px-4 py-3">NIK</th>
                                 <th class="px-4 py-3">Email</th>
                                 <th class="px-4 py-3">No. WhatsApp</th>
-                                <th class="px-4 py-3">Ukuran Jersey</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -80,7 +87,6 @@
                                     <td class="px-4 py-3">{{ $registrant['nik'] }}</td>
                                     <td class="px-4 py-3">{{ $registrant['email'] }}</td>
                                     <td class="px-4 py-3">{{ $registrant['whatsapp_number'] }}</td>
-                                    <td class="px-4 py-3">{{ $registrant['jersey_size'] ?? 'All Size' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -146,6 +152,27 @@
                 @endif
             </div>
             </section>
+
+            @if(in_array($checkout->status, ['paid', 'verified']))
+            <section class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 print:bg-white print:border">
+                <h2 class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">QR Code Akses Cepat</h2>
+                <div class="mt-3">
+                    @if(isset($qrCode) && $qrCode)
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white p-4 rounded-lg border border-slate-200">
+                            <img src="{{ $qrCode }}" alt="QR Code" class="w-48 h-48 mx-auto">
+                        </div>
+                    </div>
+                    @else
+                    <div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                        <p class="font-semibold mb-1">⚠ QR Code tidak tersedia</p>
+                        <p>Status checkout: <strong>{{ $checkout->status }}</strong></p>
+                        <p class="mt-1">Silakan refresh halaman atau hubungi admin jika masalah berlanjut.</p>
+                    </div>
+                    @endif
+                </div>
+            </section>
+            @endif
 
             <section class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-xs text-amber-800 print:border print:bg-white print:border-amber-200">
                 <strong class="block text-sm">Catatan Penting</strong>

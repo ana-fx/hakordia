@@ -8,29 +8,48 @@ use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class RegistrationNotification extends Mailable
+class PaymentSuccessNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $emailMessage;
     public $checkoutUrl;
     public $orderNumber;
     public $totalAmount;
-    public $status;
+    public $paidAt;
     public $ticketName;
+    public $qrCode;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($message, $checkoutUrl, $orderNumber, $totalAmount, $status, $ticketName = null)
+    public function __construct($checkoutUrl, $orderNumber, $totalAmount, $paidAt, $ticketName = null)
     {
-        $this->emailMessage = $message;
         $this->checkoutUrl = $checkoutUrl;
         $this->orderNumber = $orderNumber;
         $this->totalAmount = $totalAmount;
-        $this->status = $status;
+        $this->paidAt = $paidAt;
         $this->ticketName = $ticketName;
+        
+        // Generate QR Code as PNG using Imagick
+        $this->qrCode = null; // Initialize as null
+        try {
+            $qrCodeImage = QrCode::format('png')
+                ->size(200)
+                ->margin(1)
+                ->generate($checkoutUrl);
+            
+            $this->qrCode = 'data:image/png;base64,' . base64_encode($qrCodeImage);
+            
+            \Illuminate\Support\Facades\Log::info('QR code generated as PNG for email', [
+                'qr_code_length' => strlen($this->qrCode),
+                'image_length' => strlen($qrCodeImage)
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to generate PNG QR code for email (Imagick required): ' . $e->getMessage());
+            $this->qrCode = null;
+        }
     }
 
     /**
@@ -43,7 +62,7 @@ class RegistrationNotification extends Mailable
                 config('mail.from.address', 'navadigital931@gmail.com'),
                 config('mail.from.name', 'Hakordia Fun Night Run')
             ),
-            subject: 'Terima Kasih - Pendaftaran Hakordia Fun Night Run',
+            subject: 'Pembayaran Dikonfirmasi - Hakordia Fun Night Run',
         );
     }
 
@@ -53,14 +72,14 @@ class RegistrationNotification extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.registration-notification',
+            view: 'emails.payment-success',
             with: [
-                'emailMessage' => $this->emailMessage,
                 'checkoutUrl' => $this->checkoutUrl,
                 'orderNumber' => $this->orderNumber,
                 'totalAmount' => $this->totalAmount,
-                'status' => $this->status,
-                'ticketName' => $this->ticketName,
+                'paidAt' => $this->paidAt,
+                'ticketName' => $this->ticketName ?? null,
+                'qrCode' => $this->qrCode ?? null,
             ],
         );
     }

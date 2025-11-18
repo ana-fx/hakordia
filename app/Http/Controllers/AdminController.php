@@ -17,19 +17,19 @@ class AdminController extends Controller
         // Calculate global totals without search filter
         $globalTotals = [
             'total_participants' => CheckoutParticipant::whereHas('checkout', function($query) {
-                $query->where('status', 'paid');
+                $query->whereIn('status', ['paid', 'verified']);
             })->count(),
-            'total_income' => Checkout::where('status', 'paid')->sum('total_amount'),
+            'total_income' => Checkout::whereIn('status', ['paid', 'verified'])->sum('total_amount'),
             'pending' => Checkout::where('status', 'pending')->count(),
             'waiting' => Checkout::where('status', 'waiting')->count(),
-            'paid' => Checkout::where('status', 'paid')->count(),
+            'paid' => Checkout::whereIn('status', ['paid', 'verified'])->count(),
             'expired' => Checkout::where('status', 'expired')->count()
         ];
 
         // Build query with search and filters
         $query = Checkout::with(['participants' => function($query) {
             $query->orderBy('created_at', 'desc');
-        }]);
+        }, 'ticket']);
 
         // Apply filters
         if ($request->has('status') && !empty($request->status)) {
@@ -52,6 +52,10 @@ class AdminController extends Controller
                 $q->where('order_number', 'like', "%{$searchTerm}%")
                     ->orWhere('status', 'like', "%{$searchTerm}%")
                     ->orWhere('total_amount', 'like', "%{$searchTerm}%")
+                    // Search in ticket name
+                    ->orWhereHas('ticket', function($q) use ($searchTerm) {
+                        $q->where('name', 'like', "%{$searchTerm}%");
+                    })
                     // Search in participants through the relationship
                     ->orWhereHas('participants', function($q) use ($searchTerm) {
                         $q->where(function($subQ) use ($searchTerm) {
@@ -109,12 +113,19 @@ class AdminController extends Controller
         $request->validate([
             'status' => 'required|in:pending,waiting,paid,expired,verified',
         ]);
-        $checkout = \App\Models\Checkout::with('ticket')->findOrFail($id);
+        $checkout = \App\Models\Checkout::with(['ticket', 'participants'])->findOrFail($id);
         $oldStatus = $checkout->status;
         $newStatus = $request->status;
 
         // Update status
         $checkout->status = $newStatus;
+
+        // Set paid_at timestamp when status changes to paid
+        if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+            $checkout->paid_at = now();
+        } elseif ($oldStatus === 'paid' && $newStatus !== 'paid') {
+            $checkout->paid_at = null;
+        }
 
         // Handle quota reduction/increase when status changes
         if ($checkout->ticket && $checkout->ticket->quota !== null) {
@@ -132,6 +143,35 @@ class AdminController extends Controller
         }
 
         $checkout->save();
+
+        // Send payment success email when status changes to paid
+        if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+            try {
+                $url = url(route('checkout.public', $checkout->unique_id, false));
+                $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
+                $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
+                
+                // Send email to all participants
+                foreach ($checkout->participants as $participant) {
+                    \App\Jobs\SendPaymentSuccessEmail::dispatch(
+                        $participant->email,
+                        $url,
+                        $checkout->order_number,
+                        $checkout->total_amount,
+                        $paidAt,
+                        $ticketName
+                    );
+                }
+                
+                \Illuminate\Support\Facades\Log::info('Payment success emails dispatched', [
+                    'checkout_id' => $checkout->id,
+                    'order_number' => $checkout->order_number,
+                    'participants_count' => $checkout->participants->count()
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal dispatch payment success email: ' . $e->getMessage());
+            }
+        }
 
         // Log quota info for debugging
         if ($checkout->ticket && $checkout->ticket->quota !== null) {
@@ -152,12 +192,12 @@ class AdminController extends Controller
     {
         $totals = [
             'total_participants' => CheckoutParticipant::whereHas('checkout', function($query) {
-                $query->where('status', 'paid');
+                $query->whereIn('status', ['paid', 'verified']);
             })->count(),
-            'total_income' => Checkout::where('status', 'paid')->sum('total_amount'),
+            'total_income' => Checkout::whereIn('status', ['paid', 'verified'])->sum('total_amount'),
             'pending' => Checkout::where('status', 'pending')->count(),
             'waiting' => Checkout::where('status', 'waiting')->count(),
-            'paid' => Checkout::where('status', 'paid')->count(),
+            'paid' => Checkout::whereIn('status', ['paid', 'verified'])->count(),
             'expired' => Checkout::where('status', 'expired')->count()
         ];
 
@@ -166,7 +206,7 @@ class AdminController extends Controller
 
     public function orderDetail($order_number)
     {
-        $checkout = \App\Models\Checkout::with('participants')->where('order_number', $order_number)->firstOrFail();
+        $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('order_number', $order_number)->firstOrFail();
         // Ambil semua registration yang email/nik-nya sama dengan peserta di checkout
         $registrations = \App\Models\Registration::whereIn('nik', $checkout->participants->pluck('nik'))
             ->orWhereIn('email', $checkout->participants->pluck('email'))
@@ -176,7 +216,7 @@ class AdminController extends Controller
 
     public function editOrder($order_number)
     {
-        $checkout = \App\Models\Checkout::with('participants')->where('order_number', $order_number)->firstOrFail();
+        $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('order_number', $order_number)->firstOrFail();
         $registrations = \App\Models\Registration::whereIn('nik', $checkout->participants->pluck('nik'))
             ->orWhereIn('email', $checkout->participants->pluck('email'))
             ->get();
@@ -210,8 +250,44 @@ class AdminController extends Controller
                 }
             }
 
+            // Set paid_at timestamp when status changes to paid
+            if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+                $checkout->paid_at = now();
+            } elseif ($oldStatus === 'paid' && $newStatus !== 'paid') {
+                $checkout->paid_at = null;
+            }
+
             $checkout->status = $newStatus;
             $checkout->save();
+
+            // Send payment success email when status changes to paid
+            if ($oldStatus !== 'paid' && $newStatus === 'paid') {
+                try {
+                    $url = url(route('checkout.public', $checkout->unique_id, false));
+                    $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
+                    $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
+                    
+                    // Send email to all participants
+                    foreach ($checkout->participants as $participant) {
+                        \App\Jobs\SendPaymentSuccessEmail::dispatch(
+                            $participant->email,
+                            $url,
+                            $checkout->order_number,
+                            $checkout->total_amount,
+                            $paidAt,
+                            $ticketName
+                        );
+                    }
+                    
+                    \Illuminate\Support\Facades\Log::info('Payment success emails dispatched from updateOrder', [
+                        'checkout_id' => $checkout->id,
+                        'order_number' => $checkout->order_number,
+                        'participants_count' => $checkout->participants->count()
+                    ]);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Gagal dispatch payment success email from updateOrder: ' . $e->getMessage());
+                }
+            }
         }
         return redirect()->route('admin.orderDetail', $order_number)->with('success', 'Data order dan peserta berhasil diperbarui.');
     }

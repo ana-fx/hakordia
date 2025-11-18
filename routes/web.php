@@ -65,6 +65,7 @@ Route::view('/syarat-ketentuan', 'policy.terms')->name('policy.terms');
 
 // Test Email Route (untuk testing saja, hapus di production)
 Route::get('/test-email', [\App\Http\Controllers\TestEmailController::class, 'test'])->name('test.email');
+Route::get('/test-email-payment-success', [\App\Http\Controllers\TestEmailController::class, 'testPaymentSuccess'])->name('test.email.payment-success');
 
 // Admin auth routes
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');

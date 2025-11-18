@@ -1,0 +1,66 @@
+// Script untuk membuat order baru dengan bukti pembayaran
+// Jalankan: php artisan tinker
+// Lalu copy-paste script di bawah ini
+
+use App\Models\Checkout;
+use App\Models\CheckoutParticipant;
+use App\Models\Ticket;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+
+// Ambil ticket pertama
+$ticket = Ticket::first();
+if (!$ticket) {
+    return "Tidak ada ticket tersedia.";
+}
+
+// Buat checkout dengan status waiting (sudah upload bukti)
+$checkout = Checkout::create([
+    'order_number' => Checkout::generateOrderNumber(),
+    'ticket_id' => $ticket->id,
+    'total_amount' => $ticket->price,
+    'total_participants' => 1,
+    'status' => 'waiting',
+    'payment_deadline' => Carbon::now()->addHours(24),
+]);
+
+// Buat participant
+$participant = CheckoutParticipant::create([
+    'checkout_id' => $checkout->id,
+    'nik' => '320101010101000' . rand(1, 9),
+    'full_name' => 'Test User ' . rand(1000, 9999),
+    'whatsapp_number' => '628123456789' . rand(10, 99),
+    'email' => 'test' . rand(1000, 9999) . '@example.com',
+    'address' => 'Jl. Test No. ' . rand(1, 100),
+    'date_of_birth' => Carbon::now()->subYears(rand(20, 40))->format('Y-m-d'),
+    'city' => 'Jakarta',
+    'jersey_size' => 'L',
+    'blood_type' => 'O',
+    'emergency_contact_number' => '628123456789' . rand(10, 99),
+    'medical_conditions' => null,
+]);
+
+// Buat dummy payment proof
+if (!Storage::disk('public')->exists('payment-proofs')) {
+    Storage::disk('public')->makeDirectory('payment-proofs');
+}
+
+$paymentProofPath = 'payment-proofs/test_' . $checkout->order_number . '_' . time() . '.jpg';
+// Buat file dummy 1x1 pixel PNG (base64)
+$dummyImage = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+Storage::disk('public')->put($paymentProofPath, $dummyImage);
+
+// Update checkout dengan payment proof
+$checkout->payment_proof = $paymentProofPath;
+$checkout->save();
+
+return [
+    'order_number' => $checkout->order_number,
+    'status' => $checkout->status,
+    'unique_id' => $checkout->unique_id,
+    'payment_proof' => $checkout->payment_proof,
+    'participant' => $participant->full_name,
+    'email' => $participant->email,
+    'url' => url(route('checkout.public', $checkout->unique_id, false))
+];
+

@@ -196,14 +196,20 @@ class RegistrationController extends Controller
             }
 
             DB::commit();
+            
+            // Reload checkout with ticket relationship
+            $checkout->load('ticket');
+            
             Log::info('Checkout berhasil dibuat', ['checkout' => $checkout]);
             Log::info('Transaksi commit, redirect ke checkout', ['unique_id' => $checkout->unique_id]);
 
             // --- Kirim Email via Queue ke semua peserta ---
             try {
                 $url = route('checkout.public', $checkout->unique_id);
+                $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
                 $message = "Terima kasih sudah mendaftar Night Run 2025!\n" .
                     "Order: {$checkout->order_number}\n" .
+                    "Tiket: " . ($ticketName ? $ticketName : 'N/A') . "\n" .
                     "Total: Rp " . number_format($checkout->total_amount, 0, ',', '.') . "\n" .
                     "Status: {$checkout->status}\n" .
                     "Cek detail & upload bukti pembayaran di: {$url}";
@@ -215,7 +221,8 @@ class RegistrationController extends Controller
                         $url,
                         $checkout->order_number,
                         $checkout->total_amount,
-                        $checkout->status
+                        $checkout->status,
+                        $ticketName
                     ));
                 }
             } catch (\Exception $e) {

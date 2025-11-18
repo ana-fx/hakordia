@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Mail\RegistrationNotification;
+use App\Mail\PaymentSuccessNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-class SendEmailNotification implements ShouldQueue
+class SendPaymentSuccessEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -19,24 +19,22 @@ class SendEmailNotification implements ShouldQueue
     public $backoff = [60, 180, 360]; // Delay antara retry (dalam detik)
 
     protected $to;
-    protected $message;
     protected $checkoutUrl;
     protected $orderNumber;
     protected $totalAmount;
-    protected $status;
+    protected $paidAt;
     protected $ticketName;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($to, $message, $checkoutUrl, $orderNumber, $totalAmount, $status, $ticketName = null)
+    public function __construct($to, $checkoutUrl, $orderNumber, $totalAmount, $paidAt, $ticketName = null)
     {
         $this->to = $to;
-        $this->message = $message;
         $this->checkoutUrl = $checkoutUrl;
         $this->orderNumber = $orderNumber;
         $this->totalAmount = $totalAmount;
-        $this->status = $status;
+        $this->paidAt = $paidAt;
         $this->ticketName = $ticketName;
     }
 
@@ -46,23 +44,22 @@ class SendEmailNotification implements ShouldQueue
     public function handle(): void
     {
         try {
-            Log::info('Mencoba mengirim email ke: ' . $this->to);
+            Log::info('Mencoba mengirim email payment success ke: ' . $this->to);
 
             // Kirim email menggunakan Mail facade
             Mail::to($this->to)->send(
-                new RegistrationNotification(
-                    $this->message,
+                new PaymentSuccessNotification(
                     $this->checkoutUrl,
                     $this->orderNumber,
                     $this->totalAmount,
-                    $this->status,
+                    $this->paidAt,
                     $this->ticketName
                 )
             );
 
-            Log::info('Email notification sent successfully to: ' . $this->to);
+            Log::info('Payment success email sent successfully to: ' . $this->to);
         } catch (\Exception $e) {
-            Log::error('Gagal kirim email via Queue: ' . $e->getMessage());
+            Log::error('Gagal kirim email payment success via Queue: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -72,7 +69,7 @@ class SendEmailNotification implements ShouldQueue
      */
     public function failed(\Throwable $exception)
     {
-        Log::error('Email notification failed after all retries: ' . $exception->getMessage());
+        Log::error('Payment success email failed after all retries: ' . $exception->getMessage());
     }
 }
 

@@ -27,6 +27,16 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tiket</label>
+                        <div class="text-lg font-semibold text-gray-900">
+                            @if($checkout->ticket)
+                                {{ $checkout->ticket->name }}
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Total Pembayaran</label>
                         <div class="text-lg font-semibold text-gray-900">Rp {{ number_format($checkout->total_amount, 0, ',', '.') }}</div>
                     </div>
@@ -76,12 +86,6 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">No. WhatsApp</label>
                                 <input type="text" name="participants[{{ $p->id }}][whatsapp_number]" value="{{ $p->whatsapp_number }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-accent focus:ring focus:ring-accent focus:ring-opacity-50">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Ukuran Jersey</label>
-                                <div class="w-full rounded-md border border-dashed border-accent/40 bg-accent/5 px-4 py-3 text-sm font-semibold text-accent">
-                                    {{ $p->jersey_size ?? 'All Size' }}
-                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>

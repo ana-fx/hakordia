@@ -93,10 +93,118 @@ class CheckoutController extends Controller
     {
         $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('unique_id', $unique_id)->firstOrFail();
         $registrants = $checkout->participants;
-        return view('checkout', [
-            'checkout' => $checkout,
-            'registrants' => $registrants
+
+        // Generate QR Code if status is paid or verified
+        $qrCode = null;
+
+        // Debug: Check status value
+        \Illuminate\Support\Facades\Log::info('Checking checkout status for QR code', [
+            'status' => $checkout->status,
+            'status_type' => gettype($checkout->status),
+            'status_length' => strlen($checkout->status),
+            'is_paid' => $checkout->status === 'paid',
+            'is_verified' => $checkout->status === 'verified',
+            'in_array_result' => in_array($checkout->status, ['paid', 'verified'], true)
         ]);
+
+        if (in_array($checkout->status, ['paid', 'verified'], true)) {
+            try {
+                $checkoutUrl = url(route('checkout.public', $checkout->unique_id, false));
+
+                \Illuminate\Support\Facades\Log::info('Generating QR code for checkout', [
+                    'unique_id' => $checkout->unique_id,
+                    'status' => $checkout->status,
+                    'url' => $checkoutUrl
+                ]);
+
+                // Try PNG first (requires Imagick), fallback to SVG if fails
+                try {
+                    $qrCodeImage = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                        ->size(200)
+                        ->margin(1)
+                        ->generate($checkoutUrl);
+
+                    if (!empty($qrCodeImage)) {
+                        $qrCode = 'data:image/png;base64,' . base64_encode($qrCodeImage);
+                        \Illuminate\Support\Facades\Log::info('QR code generated successfully (PNG)', [
+                            'qr_code_length' => strlen($qrCode),
+                            'image_length' => strlen($qrCodeImage)
+                        ]);
+                    } else {
+                        throw new \Exception('PNG QR code is empty');
+                    }
+                } catch (\Throwable $pngError) {
+                    // Fallback to SVG if PNG fails (e.g., Imagick not available)
+                    \Illuminate\Support\Facades\Log::warning('PNG QR code generation failed, trying SVG', [
+                        'error' => $pngError->getMessage()
+                    ]);
+
+                    try {
+                        $qrCodeSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                            ->size(200)
+                            ->margin(1)
+                            ->generate($checkoutUrl);
+
+                        if (!empty($qrCodeSvg)) {
+                            $qrCode = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+                            \Illuminate\Support\Facades\Log::info('QR code generated successfully (SVG fallback)', [
+                                'qr_code_length' => strlen($qrCode),
+                                'svg_length' => strlen($qrCodeSvg)
+                            ]);
+                        } else {
+                            throw new \Exception('SVG QR code is empty');
+                        }
+                    } catch (\Throwable $svgError) {
+                        \Illuminate\Support\Facades\Log::error('Both PNG and SVG QR code generation failed', [
+                            'png_error' => $pngError->getMessage(),
+                            'svg_error' => $svgError->getMessage()
+                        ]);
+                        $qrCode = null;
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to generate QR code', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $qrCode = null;
+            }
+        } else {
+            \Illuminate\Support\Facades\Log::info('QR code not generated - status not paid/verified', [
+                'status' => $checkout->status
+            ]);
+        }
+
+        // Ensure qrCode is always set (even if null)
+        if (!isset($qrCode)) {
+            $qrCode = null;
+            \Illuminate\Support\Facades\Log::warning('QR code variable was not set, setting to null');
+        }
+
+        \Illuminate\Support\Facades\Log::info('Returning checkout view', [
+            'unique_id' => $checkout->unique_id,
+            'status' => $checkout->status,
+            'qrCode_set' => isset($qrCode),
+            'qrCode_value' => $qrCode ? 'has_value' : 'null'
+        ]);
+
+        // Explicitly pass all variables to view
+        $viewData = [
+            'checkout' => $checkout,
+            'registrants' => $registrants,
+            'qrCode' => $qrCode ?? null
+        ];
+
+        \Illuminate\Support\Facades\Log::info('View data prepared', [
+            'has_checkout' => isset($viewData['checkout']),
+            'has_registrants' => isset($viewData['registrants']),
+            'has_qrCode' => isset($viewData['qrCode']),
+            'qrCode_value' => $viewData['qrCode'] ? 'has_value' : 'null'
+        ]);
+
+        return view('checkout', $viewData);
     }
 
     public function uploadPaymentProofPublic(Request $request, $unique_id)

@@ -25,12 +25,15 @@
 </head>
 <body class="bg-slate-100">
 @php
+    $waitingCount = \App\Models\Checkout::where('status', 'waiting')->count();
+    
     $navItems = [
         [
             'label' => 'Dashboard',
             'route' => 'admin.dashboard',
             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />',
             'match' => ['admin.dashboard'],
+            'badge' => $waitingCount > 0 ? $waitingCount : null,
         ],
         [
             'label' => 'Ticket',
@@ -79,7 +82,12 @@
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     {!! $item['icon'] !!}
                                 </svg>
-                                <span>{{ $item['label'] }}</span>
+                                <span class="flex-1">{{ $item['label'] }}</span>
+                                @if(isset($item['badge']) && $item['badge'] > 0)
+                                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold text-white bg-amber-500 animate-pulse">
+                                        {{ $item['badge'] }}
+                                    </span>
+                                @endif
                             </a>
                         </li>
                     @endforeach

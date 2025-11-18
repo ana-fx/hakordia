@@ -99,10 +99,6 @@
                                                     <dd>{{ $participant->city }}</dd>
                                                 </div>
                                                 <div>
-                                                    <dt class="font-medium">Ukuran Jersey</dt>
-                                                    <dd>{{ $participant->jersey_size ?? 'All Size' }}</dd>
-                                                </div>
-                                                <div>
                                                     <dt class="font-medium">Golongan Darah</dt>
                                                     <dd>{{ $participant->blood_type ?? 'Tidak diisi' }}</dd>
                                                 </div>

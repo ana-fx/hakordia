@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice - Pendaftaran Hakordia Fun Night Run</title>
+    <title>Pembayaran Dikonfirmasi - Hakordia Fun Night Run</title>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
@@ -20,11 +20,11 @@
                                     </td>
                                     <td style="vertical-align: top;">
                                         <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Hakordia Fun Night Run</h1>
-                                        <p style="color: #cbd5e1; margin: 8px 0 0 0; font-size: 14px;">Invoice Pendaftaran</p>
+                                        <p style="color: #cbd5e1; margin: 8px 0 0 0; font-size: 14px;">Pembayaran Dikonfirmasi</p>
                                     </td>
                                     <td align="right" style="vertical-align: top;">
                                         <div style="background-color: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 6px; display: inline-block;">
-                                            <span style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">{{ strtoupper($status) }}</span>
+                                            <span style="color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">PAID</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -42,8 +42,8 @@
                                         <p style="margin: 0; color: #111827; font-size: 18px; font-weight: 700;">{{ $orderNumber }}</p>
                                     </td>
                                     <td width="50%" align="right" style="vertical-align: top;">
-                                        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Tanggal</p>
-                                        <p style="margin: 0; color: #111827; font-size: 16px; font-weight: 600;">{{ date('d F Y', strtotime('now')) }}</p>
+                                        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Tanggal Konfirmasi</p>
+                                        <p style="margin: 0; color: #111827; font-size: 16px; font-weight: 600;">{{ $paidAt }}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -63,7 +63,7 @@
                                     <td width="50%" style="vertical-align: top; padding-left: 20px;">
                                         <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Kepada</p>
                                         <p style="margin: 0 0 4px 0; color: #111827; font-size: 14px; font-weight: 700;">Peserta Terdaftar</p>
-                                        <p style="margin: 0; color: #6b7280; font-size: 13px;">Terima kasih atas pendaftaran Anda</p>
+                                        <p style="margin: 0; color: #6b7280; font-size: 13px;">Pembayaran Anda telah dikonfirmasi</p>
                                     </td>
                                 </tr>
                             </table>
@@ -84,7 +84,7 @@
                                     <tr>
                                         <td style="padding: 16px 0; border-bottom: 1px solid #e5e7eb; color: #111827; font-size: 14px;">
                                             <strong>Pendaftaran Hakordia Fun Night Run</strong><br>
-                                            @if($ticketName)
+                                            @if(isset($ticketName) && $ticketName)
                                                 <span style="color: #6b7280; font-size: 13px;">Tiket: {{ $ticketName }}</span><br>
                                             @endif
                                             <span style="color: #6b7280; font-size: 13px;">{{ $orderNumber }}</span>
@@ -124,23 +124,40 @@
                         </td>
                     </tr>
 
-                    <!-- Payment Info -->
+                    <!-- Success Message Section -->
                     <tr>
                         <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
-                            <h3 style="margin: 0 0 16px 0; color: #111827; font-size: 16px; font-weight: 700;">Informasi Pembayaran</h3>
-                            <div style="background-color: #ffffff; padding: 20px; border-radius: 6px; border-left: 4px solid #3b82f6;">
-                                <p style="margin: 0 0 12px 0; color: #111827; font-size: 14px; font-weight: 600;">Rekening Bank</p>
-                                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 13px;">No. Rekening: <strong style="color: #111827;">0032836836</strong></p>
-                                <p style="margin: 0; color: #6b7280; font-size: 13px;">Atas Nama: <strong style="color: #111827;">Andi Reza Zulkarnaen</strong></p>
+                            <div style="background-color: #d1fae5; padding: 20px; border-radius: 6px; border-left: 4px solid #10b981;">
+                                <p style="margin: 0 0 12px 0; color: #065f46; font-size: 14px; font-weight: 600;">✓ Pembayaran Berhasil Dikonfirmasi</p>
+                                <p style="margin: 0; color: #047857; font-size: 13px; line-height: 1.6;">
+                                    Terima kasih! Pembayaran Anda telah dikonfirmasi dan pendaftaran Anda aktif. Silakan simpan email ini sebagai bukti pembayaran.
+                                </p>
                             </div>
                         </td>
                     </tr>
 
-                    <!-- Action Button -->
+                    <!-- QR Code Section -->
+                    @if(isset($qrCode) && $qrCode)
                     <tr>
                         <td style="padding: 30px 40px; background-color: #ffffff; text-align: center;">
-                            <a href="{{ $checkoutUrl }}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
-                                Cek Detail & Upload Bukti Pembayaran
+                            <div style="background-color: #f9fafb; padding: 30px; border-radius: 8px; display: inline-block;">
+                                <p style="margin: 0 0 16px 0; color: #111827; font-size: 14px; font-weight: 600;">Scan QR Code untuk Akses Detail Order</p>
+                                <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <img src="{{ $qrCode }}" alt="QR Code" style="display: block; width: 200px; height: 200px;">
+                                </div>
+                                <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 12px; max-width: 300px; word-break: break-all;">
+                                    {{ $checkoutUrl }}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
+
+                    <!-- Action Button -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px; background-color: #ffffff; text-align: center;">
+                            <a href="{{ $checkoutUrl }}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);">
+                                Lihat Detail Order
                             </a>
                         </td>
                     </tr>
@@ -151,10 +168,10 @@
                             <div style="background-color: #fef3c7; padding: 20px; border-radius: 6px; border-left: 4px solid #f59e0b;">
                                 <p style="margin: 0 0 12px 0; color: #111827; font-size: 14px; font-weight: 600;">Catatan Penting</p>
                                 <p style="margin: 0 0 8px 0; color: #92400e; font-size: 13px; line-height: 1.6;">
-                                    {{ $emailMessage }}
+                                    Pastikan data yang terdaftar sudah benar. Bawa identitas asli saat Race Pack Pickup pada tanggal 5 Februari 2025. Untuk pertanyaan, hubungi admin.
                                 </p>
                                 <p style="margin: 12px 0 0 0; color: #92400e; font-size: 13px;">
-                                    <strong>Konfirmasi pembayaran?</strong> Hubungi admin: <a href="https://wa.me/6285183360304" style="color: #3b82f6; text-decoration: none;">+62 851-8336-0304</a>
+                                    <strong>Pertanyaan?</strong> Hubungi admin: <a href="https://wa.me/6285183360304" style="color: #3b82f6; text-decoration: none;">+62 851-8336-0304</a>
                                 </p>
                             </div>
                         </td>
