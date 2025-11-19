@@ -103,9 +103,26 @@ class RegistrationController extends Controller
         }
 
         Log::info('Memulai proses pendaftaran', ['request' => $request->all()]);
-        $validatedData = $request->validate([
-            'registrations' => ['required', 'array', 'min:1', 'max:5'],
+        
+        // First validate ticket_id to get ticket info
+        $ticketIdValidated = $request->validate([
             'ticket_id' => ['required', 'exists:tickets,id'],
+        ]);
+        
+        $ticket = Ticket::available()->find($ticketIdValidated['ticket_id']);
+
+        if (! $ticket) {
+            return back()->withInput()->withErrors(['ticket_id' => 'Pilihan tiket tidak tersedia saat ini.']);
+        }
+
+        // Determine max participants based on ticket type
+        $maxParticipants = $ticket->participant_count !== null 
+            ? $ticket->participant_count  // Bundle ticket: use participant_count
+            : 10;  // Regular ticket: allow up to 10 participants
+
+        // Now validate registrations with dynamic max
+        $validatedData = $request->validate([
+            'registrations' => ['required', 'array', 'min:1', "max:{$maxParticipants}"],
             'registrations.*.nik' => ['required', 'string', 'size:16', 'distinct', 'unique:registrations,nik'],
             'registrations.*.full_name' => ['required', 'string', 'max:255'],
             'registrations.*.whatsapp_number' => ['required', 'string', 'max:20', 'distinct', 'unique:registrations,whatsapp_number'],
@@ -121,6 +138,7 @@ class RegistrationController extends Controller
             'terms' => 'required|accepted',
             'data_confirmation' => 'required|accepted',
         ], [
+            'registrations.max' => "Maksimal {$maxParticipants} peserta untuk tiket ini.",
             'registrations.*.nik.unique' => 'NIK sudah terdaftar.',
             'registrations.*.nik.distinct' => 'NIK tidak boleh sama dengan pendaftar lain.',
             'registrations.*.whatsapp_number.unique' => 'Nomor WhatsApp sudah terdaftar.',
@@ -128,13 +146,12 @@ class RegistrationController extends Controller
             'registrations.*.email.unique' => 'Email sudah terdaftar.',
             'registrations.*.email.distinct' => 'Email tidak boleh sama dengan pendaftar lain.',
         ]);
+        
+        // Merge ticket_id into validated data
+        $validatedData['ticket_id'] = $ticketIdValidated['ticket_id'];
+        
         Log::info('Validasi berhasil', ['validated' => $validatedData]);
         $totalParticipants = count($validatedData['registrations']);
-        $ticket = Ticket::available()->find($validatedData['ticket_id']);
-
-        if (! $ticket) {
-            return back()->withInput()->withErrors(['ticket_id' => 'Pilihan tiket tidak tersedia saat ini.']);
-        }
 
         // Validate participant count for bundle tickets
         if ($ticket->participant_count !== null) {
