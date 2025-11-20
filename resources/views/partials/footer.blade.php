@@ -54,8 +54,14 @@
             </div>
         </div>
 
-        <div class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-center text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-            <p>&copy; {{ date('Y') }} Hakordia Fun Night Run. All rights reserved.</p>
+        <div class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-left text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-col gap-2">
+                <p>&copy; {{ date('Y') }} Hakordia Fun Night Run. All rights reserved.</p>
+                <p class="text-xs text-slate-500">
+                    Developed by
+                    <a href="https://nava.enterprises/" target="_blank" rel="noopener" class="hover:text-primary transition font-semibold">Nava</a>
+                </p>
+            </div>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="{{ route('policy.privacy') }}" class="hover:text-primary transition">Kebijakan Privasi</a>
                 <a href="{{ route('policy.terms') }}" class="hover:text-primary transition">Syarat & Ketentuan</a>
