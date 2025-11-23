@@ -9,8 +9,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    
+    <!-- Vite CSS (compiled Tailwind) - Try to load from build -->
+    @if(app()->environment('production') || file_exists(public_path('build/manifest.json')))
+        @vite(['resources/css/app.css'])
+    @endif
+    
+    <!-- Tailwind CDN (Primary for development, fallback for production) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind CDN with custom colors
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#4175cb',
+                            secondary: '#a9c941',
+                        }
+                    }
+                }
+            };
+        }
+    </script>
+    
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          crossorigin="anonymous">
 
     <style>
         body {
@@ -41,6 +66,24 @@
             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />',
             'match' => ['admin.tickets.*'],
         ],
+        [
+            'label' => 'Scanner',
+            'route' => 'admin.scanner',
+            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />',
+            'match' => ['admin.scanner', 'admin.scanner.*'],
+            'submenu' => [
+                [
+                    'label' => 'Scan QR Code',
+                    'route' => 'admin.scanner',
+                    'match' => ['admin.scanner'],
+                ],
+                [
+                    'label' => 'Laporan Ter-scan',
+                    'route' => 'admin.scanner.reports',
+                    'match' => ['admin.scanner.reports'],
+                ],
+            ],
+        ],
     ];
 @endphp
 
@@ -69,26 +112,80 @@
                     @foreach ($navItems as $item)
                         @php
                             $active = false;
+                            $hasActiveSubmenu = false;
                             foreach ($item['match'] as $pattern) {
                                 if (request()->routeIs($pattern)) {
                                     $active = true;
                                     break;
                                 }
                             }
+                            
+                            // Check if any submenu is active
+                            if (isset($item['submenu'])) {
+                                foreach ($item['submenu'] as $subItem) {
+                                    foreach ($subItem['match'] as $pattern) {
+                                        if (request()->routeIs($pattern)) {
+                                            $hasActiveSubmenu = true;
+                                            $active = true;
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
                         @endphp
                         <li>
-                            <a href="{{ route($item['route']) }}"
-                               class="sidebar-link flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-primary/10 hover:text-primary {{ $active ? 'active' : '' }}">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    {!! $item['icon'] !!}
-                                </svg>
-                                <span class="flex-1">{{ $item['label'] }}</span>
-                                @if(isset($item['badge']) && $item['badge'] > 0)
-                                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold text-white bg-amber-500 animate-pulse">
-                                        {{ $item['badge'] }}
-                                    </span>
-                                @endif
-                            </a>
+                            @if(isset($item['submenu']))
+                                <div class="space-y-1">
+                                    <a href="{{ route($item['route']) }}"
+                                       class="sidebar-link flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-primary/10 hover:text-primary {{ $active ? 'active' : '' }}">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            {!! $item['icon'] !!}
+                                        </svg>
+                                        <span class="flex-1">{{ $item['label'] }}</span>
+                                        @if(isset($item['badge']) && $item['badge'] > 0)
+                                            <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold text-white bg-amber-500 animate-pulse">
+                                                {{ $item['badge'] }}
+                                            </span>
+                                        @endif
+                                        <svg class="h-4 w-4 transition-transform {{ $hasActiveSubmenu ? 'rotate-90' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                    <ul class="ml-4 space-y-1 {{ $hasActiveSubmenu ? '' : 'hidden' }}" id="submenu-{{ $loop->index }}">
+                                        @foreach ($item['submenu'] as $subItem)
+                                            @php
+                                                $subActive = false;
+                                                foreach ($subItem['match'] as $pattern) {
+                                                    if (request()->routeIs($pattern)) {
+                                                        $subActive = true;
+                                                        break;
+                                                    }
+                                                }
+                                            @endphp
+                                            <li>
+                                                <a href="{{ route($subItem['route']) }}"
+                                                   class="flex items-center gap-2 rounded-xl px-4 py-2 text-xs transition hover:bg-primary/10 hover:text-primary {{ $subActive ? 'bg-primary/10 text-primary font-bold' : 'text-slate-500' }}">
+                                                    <span class="h-1.5 w-1.5 rounded-full {{ $subActive ? 'bg-primary' : 'bg-slate-300' }}"></span>
+                                                    {{ $subItem['label'] }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @else
+                                <a href="{{ route($item['route']) }}"
+                                   class="sidebar-link flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-primary/10 hover:text-primary {{ $active ? 'active' : '' }}">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        {!! $item['icon'] !!}
+                                    </svg>
+                                    <span class="flex-1">{{ $item['label'] }}</span>
+                                    @if(isset($item['badge']) && $item['badge'] > 0)
+                                        <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold text-white bg-amber-500 animate-pulse">
+                                            {{ $item['badge'] }}
+                                        </span>
+                                    @endif
+                                </a>
+                            @endif
                         </li>
                     @endforeach
                 </ul>
@@ -183,6 +280,28 @@
         } else {
             sidebar.classList.add('-translate-x-full');
         }
+    });
+
+    // Submenu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[id^="submenu-"]').forEach(submenu => {
+            const parentLink = submenu.previousElementSibling;
+            if (parentLink && parentLink.classList.contains('sidebar-link')) {
+                parentLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const isHidden = submenu.classList.contains('hidden');
+                    const arrow = parentLink.querySelector('svg:last-child');
+                    
+                    if (isHidden) {
+                        submenu.classList.remove('hidden');
+                        if (arrow) arrow.classList.add('rotate-90');
+                    } else {
+                        submenu.classList.add('hidden');
+                        if (arrow) arrow.classList.remove('rotate-90');
+                    }
+                });
+            }
+        });
     });
 </script>
 @stack('admin-scripts')

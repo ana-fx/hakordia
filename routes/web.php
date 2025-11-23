@@ -58,6 +58,11 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     Route::post('/order/{order_number}/resend-email', [AdminController::class, 'resendPaymentEmail'])->name('resendPaymentEmail');
     Route::delete('/order/{order_number}', [AdminController::class, 'deleteOrder'])->name('deleteOrder');
 
+    // Scanner Routes
+    Route::get('/scanner', [AdminController::class, 'scanner'])->name('scanner');
+    Route::post('/scanner/verify', [AdminController::class, 'verifyTicket'])->name('scanner.verify');
+    Route::get('/scanner/reports', [AdminController::class, 'scannerReports'])->name('scanner.reports');
+
     Route::resource('tickets', TicketController::class)->except(['show']);
 });
 

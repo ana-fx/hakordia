@@ -24,11 +24,14 @@ class Checkout extends Model
         'payment_proof',
         'payment_deadline',
         'paid_at',
+        'redeemed_at',
+        'redeemed_by',
     ];
 
     protected $casts = [
         'payment_deadline' => 'datetime',
         'paid_at' => 'datetime',
+        'redeemed_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -66,6 +69,11 @@ class Checkout extends Model
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);
+    }
+
+    public function redeemedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'redeemed_by');
     }
 
     public static function generateOrderNumber(): string

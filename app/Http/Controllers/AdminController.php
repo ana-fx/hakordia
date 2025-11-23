@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Auth;
 use App\Exports\ParticipantsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Checkout;
@@ -150,7 +151,7 @@ class AdminController extends Controller
                 $url = url(route('checkout.public', $checkout->unique_id, false));
                 $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
                 $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
-                
+
                 // Send email to all participants
                 foreach ($checkout->participants as $participant) {
                     \App\Jobs\SendPaymentSuccessEmail::dispatch(
@@ -162,7 +163,7 @@ class AdminController extends Controller
                         $ticketName
                     );
                 }
-                
+
                 \Illuminate\Support\Facades\Log::info('Payment success emails dispatched', [
                     'checkout_id' => $checkout->id,
                     'order_number' => $checkout->order_number,
@@ -266,7 +267,7 @@ class AdminController extends Controller
                     $url = url(route('checkout.public', $checkout->unique_id, false));
                     $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
                     $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
-                    
+
                     // Send email to all participants
                     foreach ($checkout->participants as $participant) {
                         \App\Jobs\SendPaymentSuccessEmail::dispatch(
@@ -278,7 +279,7 @@ class AdminController extends Controller
                             $ticketName
                         );
                     }
-                    
+
                     \Illuminate\Support\Facades\Log::info('Payment success emails dispatched from updateOrder', [
                         'checkout_id' => $checkout->id,
                         'order_number' => $checkout->order_number,
@@ -310,14 +311,14 @@ class AdminController extends Controller
         // Hanya bisa resend untuk checkout yang statusnya paid atau verified
         if (!in_array($checkout->status, ['paid', 'verified'])) {
             $errorMessage = 'Email hanya dapat dikirim ulang untuk transaksi yang sudah dibayar (paid/verified).';
-            
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => $errorMessage
                 ], 400);
             }
-            
+
             return back()->with('error', $errorMessage);
         }
 
@@ -325,7 +326,7 @@ class AdminController extends Controller
             $url = url(route('checkout.public', $checkout->unique_id, false));
             $paidAt = $checkout->paid_at ? $checkout->paid_at->format('d F Y, H:i') : now()->format('d F Y, H:i');
             $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
-            
+
             $emailsSent = 0;
             $emailsFailed = [];
 
@@ -346,7 +347,7 @@ class AdminController extends Controller
                     \Illuminate\Support\Facades\Log::error('Gagal kirim email ke ' . $participant->email . ': ' . $e->getMessage());
                 }
             }
-            
+
             \Illuminate\Support\Facades\Log::info('Payment success emails resent', [
                 'checkout_id' => $checkout->id,
                 'order_number' => $checkout->order_number,
@@ -360,39 +361,232 @@ class AdminController extends Controller
                 if (count($emailsFailed) > 0) {
                     $message .= " Gagal: " . implode(', ', $emailsFailed);
                 }
-                
+
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json([
                         'success' => true,
                         'message' => $message
                     ]);
                 }
-                
+
                 return back()->with('success', $message);
             } else {
                 $errorMessage = 'Gagal mengirim email ke semua peserta: ' . implode(', ', $emailsFailed);
-                
+
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json([
                         'success' => false,
                         'message' => $errorMessage
                     ], 400);
                 }
-                
+
                 return back()->with('error', $errorMessage);
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Gagal resend payment success email: ' . $e->getMessage());
             $errorMessage = 'Gagal mengirim email: ' . $e->getMessage();
-            
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => $errorMessage
                 ], 500);
             }
-            
+
             return back()->with('error', $errorMessage);
         }
+    }
+
+    /**
+     * Show scanner page for ticket verification
+     */
+    public function scanner()
+    {
+        return view('admin.scanner');
+    }
+
+    /**
+     * Verify ticket from QR code scan
+     */
+    public function verifyTicket(Request $request)
+    {
+        $request->validate([
+            'unique_id' => 'required|string',
+        ]);
+
+        try {
+            // Extract unique_id from URL if full URL is provided
+            $uniqueId = $request->unique_id;
+            if (filter_var($uniqueId, FILTER_VALIDATE_URL)) {
+                // Extract UUID from URL like: https://www.hakordia.online/register/{uuid}
+                if (preg_match('/\/register\/([a-f0-9\-]{36})/i', $uniqueId, $matches)) {
+                    $uniqueId = $matches[1];
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format URL tidak valid. Pastikan QR code dari tiket yang benar.'
+                    ], 400);
+                }
+            }
+
+            // Validate UUID format
+            if (!preg_match('/^[a-f0-9\-]{36}$/i', $uniqueId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format unique ID tidak valid.'
+                ], 400);
+            }
+
+            // Find checkout by unique_id
+            $checkout = Checkout::with(['participants', 'ticket', 'redeemedBy'])
+                ->where('unique_id', $uniqueId)
+                ->first();
+
+            if (!$checkout) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tiket tidak ditemukan. Pastikan QR code valid dan belum expired.'
+                ], 404);
+            }
+
+            // Check if ticket is paid or verified
+            if (!in_array($checkout->status, ['paid', 'verified'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tiket belum dibayar. Status: ' . ucfirst($checkout->status),
+                    'checkout' => [
+                        'order_number' => $checkout->order_number,
+                        'status' => $checkout->status,
+                    ]
+                ], 400);
+            }
+
+            // Check if already redeemed
+            if ($checkout->redeemed_at !== null) {
+                $redeemedBy = $checkout->redeemedBy ? $checkout->redeemedBy->name : 'Unknown';
+                $redeemedAt = $checkout->redeemed_at->format('d M Y, H:i');
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tiket sudah ditukarkan sebelumnya.',
+                    'already_redeemed' => true,
+                    'checkout' => [
+                        'order_number' => $checkout->order_number,
+                        'redeemed_at' => $redeemedAt,
+                        'redeemed_by' => $redeemedBy,
+                    ]
+                ], 400);
+            }
+
+            // Verify ticket (mark as redeemed)
+            $checkout->redeemed_at = now();
+            $checkout->redeemed_by = Auth::id();
+            $checkout->status_verifikasi = 'verified';
+            $checkout->save();
+
+            // Log verification
+            \Illuminate\Support\Facades\Log::info('Ticket verified', [
+                'checkout_id' => $checkout->id,
+                'order_number' => $checkout->order_number,
+                'unique_id' => $checkout->unique_id,
+                'verified_by' => Auth::id(),
+                'verified_at' => $checkout->redeemed_at,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tiket berhasil diverifikasi dan ditukarkan!',
+                'checkout' => [
+                    'id' => $checkout->id,
+                    'order_number' => $checkout->order_number,
+                    'total_participants' => $checkout->total_participants,
+                    'ticket_name' => $checkout->ticket ? $checkout->ticket->name : 'N/A',
+                    'participants' => $checkout->participants->map(function($p) {
+                        return [
+                            'name' => $p->full_name,
+                            'email' => $p->email,
+                            'whatsapp' => $p->whatsapp_number,
+                        ];
+                    }),
+                    'redeemed_at' => $checkout->redeemed_at->format('d M Y, H:i'),
+                    'redeemed_by' => Auth::user()->name,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error verifying ticket', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memverifikasi tiket: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show scanner reports - list of redeemed tickets
+     */
+    public function scannerReports(Request $request)
+    {
+        // Build query for redeemed checkouts
+        $query = Checkout::with(['participants', 'ticket', 'redeemedBy'])
+            ->whereNotNull('redeemed_at');
+
+        // Apply search if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('order_number', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('participants', function($q) use ($searchTerm) {
+                        $q->where('full_name', 'like', "%{$searchTerm}%")
+                            ->orWhere('email', 'like', "%{$searchTerm}%")
+                            ->orWhere('whatsapp_number', 'like', "%{$searchTerm}%")
+                            ->orWhere('nik', 'like', "%{$searchTerm}%");
+                    })
+                    ->orWhereHas('redeemedBy', function($q) use ($searchTerm) {
+                        $q->where('name', 'like', "%{$searchTerm}%");
+                    });
+            });
+        }
+
+        // Apply date filter
+        if ($request->has('date_from') && !empty($request->date_from)) {
+            $query->whereDate('redeemed_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && !empty($request->date_to)) {
+            $query->whereDate('redeemed_at', '<=', $request->date_to);
+        }
+
+        // Apply sorting
+        $sortField = $request->get('sort', 'redeemed_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $allowedSortFields = ['redeemed_at', 'order_number', 'total_amount', 'total_participants'];
+
+        if (in_array($sortField, $allowedSortFields)) {
+            $query->orderBy($sortField, $sortDirection);
+        }
+
+        $checkouts = $query->paginate(15)->withQueryString();
+
+        // Get statistics
+        $stats = [
+            'total_redeemed' => Checkout::whereNotNull('redeemed_at')->count(),
+            'today_redeemed' => Checkout::whereNotNull('redeemed_at')
+                ->whereDate('redeemed_at', today())
+                ->count(),
+            'total_participants_redeemed' => CheckoutParticipant::whereHas('checkout', function($q) {
+                $q->whereNotNull('redeemed_at');
+            })->count(),
+        ];
+
+        return view('admin.scanner_reports', [
+            'checkouts' => $checkouts,
+            'stats' => $stats,
+            'currentSort' => $sortField,
+            'currentDirection' => $sortDirection,
+        ]);
     }
 }
