@@ -102,7 +102,7 @@
             @endif
 
 
-            <form action="{{ route('registration.store') }}" method="POST" class="space-y-8" id="registrationForm" onsubmit="return validateCoupleBundle(event)">
+            <form action="{{ route('registration.store') }}" method="POST" class="space-y-8" id="registrationForm">
                 @csrf
                             @php
                                 $selectedTicketId = old('ticket_id', $availableTickets->first()->id ?? null);
@@ -557,40 +557,6 @@
         }, 300);
     }
 
-    function validateCoupleBundle(event) {
-        const ticketId = document.getElementById('ticketSelectedValue')?.value;
-        if (!ticketId) return true;
-
-        // Check if selected ticket is Couple Bundle
-        const selectedOption = document.querySelector(`.ticket-option[data-ticket-id="${ticketId}"]`);
-        if (!selectedOption) return true;
-
-        const ticketName = selectedOption.dataset.ticketName;
-        const participantCount = selectedOption.dataset.participantCount;
-
-        // Validate Couple Bundle
-        if (ticketName === 'Couple Bundle' && participantCount == 2) {
-            const genderInputs = document.querySelectorAll('.gender-selected-value');
-            const genders = Array.from(genderInputs).map(input => input.value).filter(val => val !== '');
-
-            if (genders.length !== 2) {
-                event.preventDefault();
-                showToast('Silakan lengkapi jenis kelamin untuk kedua peserta.', 'error');
-                return false;
-            }
-
-            const maleCount = genders.filter(g => g === 'Laki-laki').length;
-            const femaleCount = genders.filter(g => g === 'Perempuan').length;
-
-            if (maleCount !== 1 || femaleCount !== 1) {
-                event.preventDefault();
-                showToast('Paket Couple Bundle harus terdiri dari 1 Laki-laki dan 1 Perempuan. Silakan periksa kembali pilihan jenis kelamin Anda.', 'error');
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     document.addEventListener('DOMContentLoaded', function () {
         const dropdown = document.getElementById('ticketDropdown');

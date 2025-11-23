@@ -160,19 +160,6 @@ class RegistrationController extends Controller
                     'ticket_id' => "Paket {$ticket->name} harus untuk {$ticket->participant_count} peserta. Jumlah peserta saat ini: {$totalParticipants}."
                 ]);
             }
-            
-            // Validate Couple Bundle: must have 1 Male and 1 Female
-            if ($ticket->name === 'Couple Bundle' && $ticket->participant_count == 2) {
-                $genders = array_column($validatedData['registrations'], 'gender');
-                $maleCount = count(array_filter($genders, fn($g) => $g === 'Laki-laki'));
-                $femaleCount = count(array_filter($genders, fn($g) => $g === 'Perempuan'));
-                
-                if ($maleCount != 1 || $femaleCount != 1) {
-                    return back()->withInput()->withErrors([
-                        'ticket_id' => 'Paket Couple Bundle harus terdiri dari 1 Laki-laki dan 1 Perempuan.'
-                    ]);
-                }
-            }
         }
 
         // Check if ticket has available quota
