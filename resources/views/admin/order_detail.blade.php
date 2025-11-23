@@ -48,6 +48,14 @@
                         {{ $step['label'] }}
                     </span>
                 @endforeach
+                @if($checkout->redeemed_at)
+                    <span class="rounded-full border-2 border-green-500 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 flex items-center gap-1.5">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Scanned
+                    </span>
+                @endif
             </div>
         </header>
 
@@ -61,6 +69,34 @@
                     <div>Order dibuat: {{ $checkout->created_at->format('d M Y H:i') }}</div>
                     @if($checkout->paid_at)
                         <div>Dibayar pada: {{ $checkout->paid_at->format('d M Y H:i') }}</div>
+                    @endif
+                    @if($checkout->redeemed_at)
+                        <div class="sm:col-span-2 rounded-lg border-2 border-green-200 bg-green-50 px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-green-700">Status: Scanned</p>
+                                    <p class="mt-1 text-sm font-semibold text-green-900">Ditukarkan: {{ $checkout->redeemed_at->format('d M Y, H:i') }}</p>
+                                    @if($checkout->redeemedBy)
+                                        <p class="text-xs text-green-700">Oleh: {{ $checkout->redeemedBy->name }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Status: Not Scanned</p>
+                                    <p class="mt-1 text-xs text-slate-600">Tiket belum ditukarkan dengan barang fisik</p>
+                                </div>
+                            </div>
+                        </div>
                     @endif
                     @if($checkout->ticket)
                         <div class="flex items-start gap-2 sm:col-span-2 rounded-lg border border-primary/10 bg-white px-4 py-3 text-xs text-slate-600">
@@ -281,7 +317,7 @@ function showToast(message, type = 'success') {
     // Create toast element
     const toast = document.createElement('div');
     toast.className = 'pointer-events-auto flex items-center gap-3 min-w-[280px] max-w-md rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-2xl transform transition-all duration-300 ease-out translate-x-full opacity-0';
-    
+
     // Set background color based on type
     if (type === 'success') {
         toast.classList.add('bg-green-500');

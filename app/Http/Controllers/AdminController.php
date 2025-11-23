@@ -207,7 +207,7 @@ class AdminController extends Controller
 
     public function orderDetail($order_number)
     {
-        $checkout = \App\Models\Checkout::with(['participants', 'ticket'])->where('order_number', $order_number)->firstOrFail();
+        $checkout = \App\Models\Checkout::with(['participants', 'ticket', 'redeemedBy'])->where('order_number', $order_number)->firstOrFail();
         // Ambil semua registration yang email/nik-nya sama dengan peserta di checkout
         $registrations = \App\Models\Registration::whereIn('nik', $checkout->participants->pluck('nik'))
             ->orWhereIn('email', $checkout->participants->pluck('email'))
