@@ -12,7 +12,7 @@
         ['key' => 'paid', 'label' => 'Pembayaran Diterima'],
         ['key' => 'verified', 'label' => 'Terverifikasi'],
     ];
-    
+
     // Debug: Ensure qrCode variable exists
     if (!isset($qrCode)) {
         \Illuminate\Support\Facades\Log::warning('QR Code variable not set in checkout view', [
@@ -115,7 +115,7 @@
                             </div>
                         <ul class="list-disc list-inside text-xs text-slate-600">
                             <li>Tulis berita transfer: {{ $checkout->order_number }}</li>
-                            <li>Konfirmasi pembayaran melalui WhatsApp admin (+6285183360304).</li>
+                            <li>Konfirmasi pembayaran melalui WhatsApp admin (+62 851-8336-0304 atau +62 821-3993-9685).</li>
                             <li>Simpan bukti transfer untuk diunggah.</li>
                         </ul>
                     </div>

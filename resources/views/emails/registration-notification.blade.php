@@ -154,7 +154,9 @@
                                     {{ $emailMessage }}
                                 </p>
                                 <p style="margin: 12px 0 0 0; color: #92400e; font-size: 13px;">
-                                    <strong>Konfirmasi pembayaran?</strong> Hubungi admin: <a href="https://wa.me/6285183360304" style="color: #3b82f6; text-decoration: none;">+62 851-8336-0304</a>
+                                    <strong>Konfirmasi pembayaran?</strong> Hubungi admin:<br>
+                                    <a href="https://wa.me/6285183360304" style="color: #3b82f6; text-decoration: none;">+62 851-8336-0304</a> atau
+                                    <a href="https://wa.me/6282139939685" style="color: #3b82f6; text-decoration: none;">+62 821-3993-9685</a>
                                 </p>
                             </div>
                         </td>
