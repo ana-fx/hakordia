@@ -151,7 +151,7 @@
                             <div style="background-color: #fef3c7; padding: 20px; border-radius: 6px; border-left: 4px solid #f59e0b;">
                                 <p style="margin: 0 0 12px 0; color: #111827; font-size: 14px; font-weight: 600;">Catatan Penting</p>
                                 <p style="margin: 0 0 8px 0; color: #92400e; font-size: 13px; line-height: 1.6;">
-                                    Pastikan data yang terdaftar sudah benar. Bawa identitas asli saat Race Pack Pickup pada tanggal 5 Februari 2025. Untuk pertanyaan, hubungi admin.
+                                    Pastikan data yang terdaftar sudah benar. Bawa identitas asli saat Race Pack Pickup pada tanggal 5 Desember 2025. Untuk pertanyaan, hubungi admin.
                                 </p>
                                 <p style="margin: 12px 0 0 0; color: #92400e; font-size: 13px;">
                                     <strong>Pertanyaan?</strong> Hubungi admin:<br>

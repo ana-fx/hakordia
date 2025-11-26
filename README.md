@@ -227,8 +227,8 @@ Welcome to **Pandulungan** — a modern, robust, and user-friendly event registr
 - **Hadiah:** Total jutaan rupiah & sertifikat untuk 500 finisher pertama
 - **Timeline:**
   - Pendaftaran: 1-30 Januari 2025
-  - Race Pack: 5 Februari 2025
-  - Event: 10 Februari 2025
+  - Race Pack: 4 & 5 Desember 2025
+  - Event: 6 Desember 2025
 
 ---
 
