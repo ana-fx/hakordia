@@ -27,7 +27,8 @@ class Ticket extends Model
 
     public function scopeAvailable(Builder $query): Builder
     {
-        $today = now()->toDateString();
+        // Use Asia/Jakarta timezone to match WIB
+        $today = now('Asia/Jakarta')->toDateString();
 
         return $query->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today);
