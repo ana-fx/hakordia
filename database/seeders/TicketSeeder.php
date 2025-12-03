@@ -41,6 +41,15 @@ class TicketSeeder extends Seeder
                 'quota' => null,
                 'notes' => 'Selama persediaan nomor masih tersedia',
             ],
+            [
+                'name' => 'Freepass',
+                'price' => 0,
+                'participant_count' => null,
+                'start_date' => '2025-12-04',
+                'end_date' => '2025-12-05',
+                'quota' => 700,
+                'notes' => 'Kuota terbatas 700 peserta',
+            ],
         ];
 
         foreach ($tiers as $tier) {

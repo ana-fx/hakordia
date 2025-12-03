@@ -28,7 +28,9 @@
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Checkout Pendaftaran</h1>
                 <p class="text-sm text-slate-600">Order <span class="font-semibold text-primary">#{{ $checkout->order_number }}</span></p>
-                <p class="text-xs text-slate-500">Batas pembayaran: {{ $checkout->payment_deadline->format('d M Y H:i') }}</p>
+                @if($checkout->payment_deadline)
+                    <p class="text-xs text-slate-500">Batas pembayaran: {{ $checkout->payment_deadline->format('d M Y H:i') }}</p>
+                @endif
                 @if($checkout->ticket)
                     <p class="text-xs text-slate-500">Tahap tiket: {{ $checkout->ticket->name }} · Rp {{ number_format($checkout->ticket->price, 0, ',', '.') }}</p>
                 @endif
@@ -95,42 +97,53 @@
             </section>
 
             <section class="grid gap-6 md:grid-cols-2">
-                <div class="rounded-xl border border-slate-200 px-4 py-4 print:border">
-                    <h3 class="text-lg font-semibold text-slate-900">Instruksi Pembayaran</h3>
-                    <div class="mt-3 space-y-3 text-sm text-slate-700">
-                            <div>
-                            <p class="text-xs text-slate-500">Bank</p>
-                            <p class="font-semibold text-slate-900">BCA</p>
-                            </div>
-                            <div>
-                            <p class="text-xs text-slate-500">Nomor Rekening</p>
-                            <div class="mt-1 flex items-center gap-2">
-                                <span class="font-mono text-base font-semibold text-slate-900">2000937676</span>
-                                <button type="button" onclick="copyToClipboard('2000937676')" class="text-xs font-semibold text-primary hover:text-primary/80">Salin</button>
-                            </div>
-                            </div>
-                            <div>
-                            <p class="text-xs text-slate-500">Atas Nama</p>
-                            <p class="font-semibold text-slate-900">Andy Reza Zulkarnaen</p>
-                            </div>
-                        <ul class="list-disc list-inside text-xs text-slate-600">
-                            <li>Tulis berita transfer: {{ $checkout->order_number }}</li>
-                            <li>Konfirmasi pembayaran melalui WhatsApp admin (+62 851-8336-0304 atau +62 821-3993-9685).</li>
-                            <li>Simpan bukti transfer untuk diunggah.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="rounded-xl border border-slate-200 px-4 py-4 print:border">
-                    <h3 class="text-lg font-semibold text-slate-900">Upload Bukti Pembayaran</h3>
-                @if($checkout->payment_proof)
-                        <div class="mt-3 space-y-2">
-                            <p class="text-xs text-slate-500">Bukti pembayaran saat ini:</p>
-                            <img src="{{ asset('storage/'.$checkout->payment_proof) }}" alt="Bukti Pembayaran" class="w-full rounded-lg border border-slate-200 object-cover">
+                @if($checkout->total_amount == 0)
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 print:border md:col-span-2">
+                        <h3 class="text-lg font-semibold text-emerald-900">Freepass - Pendaftaran Gratis</h3>
+                        <div class="mt-3 space-y-2 text-sm text-emerald-800">
+                            <p>Pendaftaran Anda untuk kategori <strong>Freepass</strong> telah berhasil dan langsung terverifikasi.</p>
+                            <p>Tidak diperlukan pembayaran untuk kategori ini. Silakan simpan nomor order <strong>{{ $checkout->order_number }}</strong> untuk keperluan pengambilan race kit.</p>
                         </div>
-                @endif
+                    </div>
+                @else
+                    <div class="rounded-xl border border-slate-200 px-4 py-4 print:border">
+                        <h3 class="text-lg font-semibold text-slate-900">Instruksi Pembayaran</h3>
+                        <div class="mt-3 space-y-3 text-sm text-slate-700">
+                                <div>
+                                <p class="text-xs text-slate-500">Bank</p>
+                                <p class="font-semibold text-slate-900">BCA</p>
+                                </div>
+                                <div>
+                                <p class="text-xs text-slate-500">Nomor Rekening</p>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <span class="font-mono text-base font-semibold text-slate-900">2000937676</span>
+                                    <button type="button" onclick="copyToClipboard('2000937676')" class="text-xs font-semibold text-primary hover:text-primary/80">Salin</button>
+                                </div>
+                                </div>
+                                <div>
+                                <p class="text-xs text-slate-500">Atas Nama</p>
+                                <p class="font-semibold text-slate-900">Andy Reza Zulkarnaen</p>
+                                </div>
+                            <ul class="list-disc list-inside text-xs text-slate-600">
+                                <li>Tulis berita transfer: {{ $checkout->order_number }}</li>
+                                <li>Konfirmasi pembayaran melalui WhatsApp admin (+62 851-8336-0304 atau +62 821-3993-9685).</li>
+                                <li>Simpan bukti transfer untuk diunggah.</li>
+                            </ul>
+                        </div>
+                    </div>
 
-                    @if(in_array($checkout->status, ['pending', 'waiting']))
+                    <div class="rounded-xl border border-slate-200 px-4 py-4 print:border">
+                        <h3 class="text-lg font-semibold text-slate-900">Upload Bukti Pembayaran</h3>
+                @endif
+                @if($checkout->total_amount > 0)
+                    @if($checkout->payment_proof)
+                            <div class="mt-3 space-y-2">
+                                <p class="text-xs text-slate-500">Bukti pembayaran saat ini:</p>
+                                <img src="{{ asset('storage/'.$checkout->payment_proof) }}" alt="Bukti Pembayaran" class="w-full rounded-lg border border-slate-200 object-cover">
+                            </div>
+                    @endif
+
+                        @if(in_array($checkout->status, ['pending', 'waiting']))
                         <form id="paymentProofForm" action="{{ route('checkout.upload-payment', $checkout->unique_id) }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-3">
                         @csrf
                         <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-center text-sm text-slate-600">
@@ -149,8 +162,9 @@
                     </form>
                     @else
                         <p class="mt-4 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">Status pembayaran telah <strong>{{ ucfirst($checkout->status) }}</strong>. Upload tambahan tidak diperlukan.</p>
-                @endif
-            </div>
+                        @endif
+                    @endif
+                </div>
             </section>
 
             @if(in_array($checkout->status, ['paid', 'verified']))

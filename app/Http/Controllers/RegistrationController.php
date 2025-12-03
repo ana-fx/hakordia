@@ -26,7 +26,7 @@ class RegistrationController extends Controller
 
         // Get available tickets and filter by quota
         $allAvailableTickets = Ticket::available()->orderBy('start_date')->get();
-        
+
         // Filter tickets that still have quota available
         $availableTickets = $allAvailableTickets->filter(function($ticket) {
             return $ticket->hasAvailableQuota(1);
@@ -103,12 +103,12 @@ class RegistrationController extends Controller
         }
 
         Log::info('Memulai proses pendaftaran', ['request' => $request->all()]);
-        
+
         // First validate ticket_id to get ticket info
         $ticketIdValidated = $request->validate([
             'ticket_id' => ['required', 'exists:tickets,id'],
         ]);
-        
+
         $ticket = Ticket::available()->find($ticketIdValidated['ticket_id']);
 
         if (! $ticket) {
@@ -116,7 +116,7 @@ class RegistrationController extends Controller
         }
 
         // Determine max participants based on ticket type
-        $maxParticipants = $ticket->participant_count !== null 
+        $maxParticipants = $ticket->participant_count !== null
             ? $ticket->participant_count  // Bundle ticket: use participant_count
             : 10;  // Regular ticket: allow up to 10 participants
 
@@ -146,10 +146,10 @@ class RegistrationController extends Controller
             'registrations.*.email.unique' => 'Email sudah terdaftar.',
             'registrations.*.email.distinct' => 'Email tidak boleh sama dengan pendaftar lain.',
         ]);
-        
+
         // Merge ticket_id into validated data
         $validatedData['ticket_id'] = $ticketIdValidated['ticket_id'];
-        
+
         Log::info('Validasi berhasil', ['validated' => $validatedData]);
         $totalParticipants = count($validatedData['registrations']);
 
@@ -172,19 +172,24 @@ class RegistrationController extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             // For bundle tickets, use fixed price. For regular tickets, multiply by participant count
-            $totalAmount = $ticket->participant_count !== null 
-                ? $ticket->price 
+            $totalAmount = $ticket->participant_count !== null
+                ? $ticket->price
                 : $ticket->price * $totalParticipants;
+
+            // For free tickets (price = 0), automatically set status to 'paid'
+            $status = $totalAmount == 0 ? 'paid' : 'pending';
+            $paidAt = $totalAmount == 0 ? now() : null;
 
             $checkout = Checkout::create([
                 'order_number' => Checkout::generateOrderNumber(),
                 'ticket_id' => $ticket->id,
                 'total_amount' => $totalAmount,
                 'total_participants' => $totalParticipants,
-                'status' => 'pending',
-                'payment_deadline' => now()->addHours(24),
+                'status' => $status,
+                'payment_deadline' => $totalAmount == 0 ? null : now()->addHours(24),
+                'paid_at' => $paidAt,
             ]);
 
             // Create participants
@@ -200,10 +205,10 @@ class RegistrationController extends Controller
             }
 
             DB::commit();
-            
+
             // Reload checkout with ticket relationship
             $checkout->load('ticket');
-            
+
             Log::info('Checkout berhasil dibuat', ['checkout' => $checkout]);
             Log::info('Transaksi commit, redirect ke checkout', ['unique_id' => $checkout->unique_id]);
 
@@ -211,12 +216,15 @@ class RegistrationController extends Controller
             try {
                 $url = route('checkout.public', $checkout->unique_id);
                 $ticketName = $checkout->ticket ? $checkout->ticket->name : null;
+                $paymentMessage = $checkout->total_amount == 0
+                    ? "Pendaftaran Freepass Anda telah terverifikasi. Tidak diperlukan pembayaran."
+                    : "Cek detail & upload bukti pembayaran di: {$url}";
                 $message = "Terima kasih sudah mendaftar Night Run 2025!\n" .
                     "Order: {$checkout->order_number}\n" .
                     "Tiket: " . ($ticketName ? $ticketName : 'N/A') . "\n" .
                     "Total: Rp " . number_format($checkout->total_amount, 0, ',', '.') . "\n" .
                     "Status: {$checkout->status}\n" .
-                    "Cek detail & upload bukti pembayaran di: {$url}";
+                    $paymentMessage;
                 foreach ($validatedData['registrations'] as $participant) {
                     $email = $participant['email'];
                     dispatch(new SendEmailNotification(
@@ -229,13 +237,32 @@ class RegistrationController extends Controller
                         $ticketName
                     ));
                 }
+
+                // If status is already 'paid' (Freepass), send payment success email
+                if ($checkout->status === 'paid') {
+                    foreach ($validatedData['registrations'] as $participant) {
+                        $email = $participant['email'];
+                        \App\Jobs\SendPaymentSuccessEmail::dispatch(
+                            $email,
+                            $url,
+                            $checkout->order_number,
+                            $checkout->total_amount,
+                            $checkout->paid_at ? $checkout->paid_at->format('d F Y H:i') : now()->format('d F Y H:i'),
+                            $ticketName
+                        );
+                    }
+                }
             } catch (\Exception $e) {
                 Log::error('Gagal dispatch Email job: ' . $e->getMessage());
             }
             // --- END Kirim Email via Queue ke semua peserta ---
 
+            $successMessage = $checkout->total_amount == 0
+                ? 'Pendaftaran Freepass berhasil! Pendaftaran Anda telah terverifikasi.'
+                : 'Pendaftaran berhasil! Silakan lakukan pembayaran.';
+
             return redirect()->route('checkout.public', $checkout->unique_id)
-                ->with('success', 'Pendaftaran berhasil! Silakan lakukan pembayaran.');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saat pendaftaran', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
