@@ -5,7 +5,6 @@ namespace App\Exports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use App\Models\Registration;
 use App\Models\CheckoutParticipant;
 
 class ParticipantsExport implements FromCollection, WithHeadings
@@ -15,73 +14,95 @@ class ParticipantsExport implements FromCollection, WithHeadings
     */
     public function collection()
     {
-        // Registrations manual
-        $registrations = Registration::all()->map(function($item) {
+        // Hanya export data dengan status 'verified' dan exclude soft-deleted checkouts
+        $checkoutParticipants = CheckoutParticipant::with([
+            'checkout.ticket',
+            'checkout.redeemedBy'
+        ])
+        ->whereHas('checkout', function($query) {
+            $query->where('status', 'verified')
+                  ->whereNull('deleted_at');
+        })
+        ->get()
+        ->filter(function($item) {
+            // Pastikan checkout ada (seharusnya selalu ada karena whereHas, tapi untuk keamanan)
+            return $item->checkout !== null;
+        })
+        ->map(function($item) {
+            $checkout = $item->checkout;
+            $ticket = $checkout->ticket ?? null;
+            $redeemedBy = $checkout->redeemedBy ?? null;
+
             return [
+                // Data Peserta (CheckoutParticipant)
+                'NIK' => $item->nik,
                 'Nama Lengkap' => $item->full_name,
+                'Jenis Kelamin' => $item->gender ?? '',
                 'Email' => $item->email,
                 'WhatsApp' => $item->whatsapp_number,
-                'NIK' => $item->nik,
-                'Alamat' => $item->address,
-                'Tanggal Lahir' => $item->date_of_birth,
+                'Alamat Lengkap' => $item->address,
                 'Kota' => $item->city,
+                'Tanggal Lahir' => $item->date_of_birth ? $item->date_of_birth->format('Y-m-d') : '',
+                'Golongan Darah' => $item->blood_type ?? '',
                 'Ukuran Jersey' => $item->jersey_size ?? 'All Size',
-                'Golongan Darah' => $item->blood_type,
-                'Kontak Darurat' => $item->emergency_contact_number,
-                'Riwayat Penyakit' => $item->medical_conditions,
-                'Bukti Pembayaran' => '',
-                'Status' => '',
-                'Sumber Data' => 'Registrations',
+                'Nomor Kontak Darurat' => $item->emergency_contact_number,
+                'Riwayat Penyakit' => $item->medical_conditions ?? '',
+
+                // Data Checkout
+                'Order Number' => $checkout->order_number ?? '',
+                'Unique ID' => $checkout->unique_id ?? '',
+                'Tahap Ticket' => $ticket ? $ticket->name : '',
+                'Harga Ticket' => $ticket ? $ticket->price : '',
+                'Total Amount' => $checkout->total_amount ?? '',
+                'Total Participants' => $checkout->total_participants ?? '',
+                'Status' => $checkout->status ?? '',
+                'Status Verifikasi' => $checkout->status_verifikasi ?? '',
+                'Payment Proof' => $checkout->payment_proof ? url('storage/' . $checkout->payment_proof) : '',
+                'Payment Deadline' => $checkout->payment_deadline ? $checkout->payment_deadline->format('Y-m-d H:i:s') : '',
+                'Paid At' => $checkout->paid_at ? $checkout->paid_at->format('Y-m-d H:i:s') : '',
+                'Redeemed At' => $checkout->redeemed_at ? $checkout->redeemed_at->format('Y-m-d H:i:s') : '',
+                'Redeemed By' => $redeemedBy ? $redeemedBy->name : '',
+                'Created At' => $item->created_at ? $item->created_at->format('Y-m-d H:i:s') : '',
+                'Updated At' => $item->updated_at ? $item->updated_at->format('Y-m-d H:i:s') : '',
             ];
         });
 
-        // Checkout participants - exclude soft-deleted checkouts
-        $checkoutParticipants = CheckoutParticipant::with(['checkout' => function($query) {
-            $query->withTrashed();
-        }])->get()->filter(function($item) {
-            return !$item->checkout->trashed();
-        })->map(function($item) {
-            $bukti = $item->checkout && $item->checkout->payment_proof ? $item->checkout->payment_proof : '';
-            $status = $item->checkout && $item->checkout->status ? $item->checkout->status : '';
-            return [
-                'Nama Lengkap' => $item->full_name,
-                'Email' => $item->email,
-                'WhatsApp' => $item->whatsapp_number,
-                'NIK' => $item->nik,
-                'Alamat' => $item->address,
-                'Tanggal Lahir' => $item->date_of_birth,
-                'Kota' => $item->city,
-                'Ukuran Jersey' => $item->jersey_size ?? 'All Size',
-                'Golongan Darah' => $item->blood_type,
-                'Kontak Darurat' => $item->emergency_contact_number,
-                'Riwayat Penyakit' => $item->medical_conditions,
-                'Bukti Pembayaran' => $bukti,
-                'Status' => $status,
-                'Sumber Data' => 'Checkout',
-            ];
-        });
-
-        // Gabungkan
-        return $registrations->concat($checkoutParticipants);
+        return $checkoutParticipants;
     }
 
     public function headings(): array
     {
         return [
+            // Data Peserta
+            'NIK',
             'Nama Lengkap',
+            'Jenis Kelamin',
             'Email',
             'WhatsApp',
-            'NIK',
-            'Alamat',
-            'Tanggal Lahir',
+            'Alamat Lengkap',
             'Kota',
-            'Ukuran Jersey',
+            'Tanggal Lahir',
             'Golongan Darah',
-            'Kontak Darurat',
+            'Ukuran Jersey',
+            'Nomor Kontak Darurat',
             'Riwayat Penyakit',
-            'Bukti Pembayaran',
+
+            // Data Checkout
+            'Order Number',
+            'Unique ID',
+            'Tahap Ticket',
+            'Harga Ticket',
+            'Total Amount',
+            'Total Participants',
             'Status',
-            'Sumber Data',
+            'Status Verifikasi',
+            'Payment Proof',
+            'Payment Deadline',
+            'Paid At',
+            'Redeemed At',
+            'Redeemed By',
+            'Created At',
+            'Updated At',
         ];
     }
 }
