@@ -14,14 +14,17 @@ class ParticipantsExport implements FromCollection, WithHeadings
     */
     public function collection()
     {
-        // Hanya export data dengan status 'verified' dan exclude soft-deleted checkouts
+        // Export semua data, exclude soft-deleted checkouts, dan exclude tiket gratis (price = 0)
         $checkoutParticipants = CheckoutParticipant::with([
             'checkout.ticket',
             'checkout.redeemedBy'
         ])
         ->whereHas('checkout', function($query) {
-            $query->where('status', 'verified')
-                  ->whereNull('deleted_at');
+            $query->whereNull('deleted_at')
+                  ->whereHas('ticket', function($ticketQuery) {
+                      // Exclude tiket dengan harga 0 (Freepass)
+                      $ticketQuery->where('price', '>', 0);
+                  });
         })
         ->get()
         ->filter(function($item) {
